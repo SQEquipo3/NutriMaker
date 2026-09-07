@@ -1,174 +1,330 @@
 package com.javafx.nutrimaker.repository;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.javafx.nutrimaker.database.DatabaseClient;
 import com.javafx.nutrimaker.models.*;
+import com.google.gson.*;
+
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
 
-import com.javafx.nutrimaker.database.DatabaseClient;
+import static com.javafx.nutrimaker.database.DatabaseClient.*;
 
-public class MealRepository{
-    private final DatabaseClient dbClient = new DatabaseClient();
-    private final String BASEURL = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/mealbase/";
-    Gson gson = new Gson();
+public class MealRepository {
 
-    public Meal getMealById(int mealBaseId) throws IOException {
-        String url = BASEURL + mealBaseId;
-        String json = dbClient.get(url, null);
+    private final DatabaseClient db = new DatabaseClient();
 
-        // Adaptar y deserializar usando el MealAdapter
-        return MealAdapter.adaptAndDeserialize(json);
+    public Meal getMealById(int id) throws IOException {
+        return db.read(c ->
+                MealAdapter.adaptAndDeserialize(
+                        one(query(
+                                c,
+                                "SELECT * FROM mealbase WHERE meal_base_id=?",
+                                id
+                        ))
+                )
+        );
     }
 
+    private Meal selectMeal(
+            Connection c,
+            int calories,
+            String type,
+            String mealTime,
+            Set<Integer> usedMeals
+    ) throws SQLException {
 
-    public boolean createNewDiet(double caloriasTotales, int comidasPorDia, String diaDescanso, int userId, int patientId, String note) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT * FROM mealbase " +
+                "WHERE calories >= 1 " +
+                "AND calories <= ? " +
+                "AND meal_type = ? " +
+                "AND meal_time = ? "
+        );
 
-        try {
-            // Paso 1: Distribuir calorías en comidas usando DistribuidorDeCalorias
-            List<ComidaProgramada> planComidas = DistribuidorDeCalorias.distribuir(caloriasTotales, comidasPorDia);
+        List<Object> params = new ArrayList<>();
 
-            // Paso 2: Para cada comida programada, agregar opciones de alimentos hasta llenar las calorías asignadas
-            for (ComidaProgramada comida : planComidas) {
-                int caloriasRestantes = (int) comida.getCaloriasAsignadas();
-                while (caloriasRestantes > 0) {
-                    Meal alimento = getMealsByTypeAndCalories(caloriasRestantes, comida.getTipo());
-                    if (alimento == null) break;
-                    comida.agregarOpcion(alimento);
-                    caloriasRestantes -= alimento.getCalories();
-                    if(alimento.getCalories() > caloriasRestantes) break;
+        params.add(calories);
+        params.add(type);
+        params.add(mealTime);
+
+        if (!usedMeals.isEmpty()) {
+
+            sql.append("AND meal_base_id NOT IN (");
+
+            for (int i = 0; i < usedMeals.size(); i++) {
+
+                if (i > 0) {
+                    sql.append(",");
+
                 }
+
+                sql.append("?");
             }
 
-            // Paso 3: Sumar valores nutricionales totales de todas las opciones
-            ValoresNutricionales totales = new ValoresNutricionales();
-            for (ComidaProgramada comida : planComidas) {
-                for (Meal alimento : comida.getOpciones()) {
-                    totales.agregar(alimento);
-                }
-            }
+            sql.append(") ");
 
-            // Paso 4: Insertar nueva dieta en la base de datos
-            boolean confirm = sendDiet(userId, patientId, totales, diaDescanso, comidasPorDia, note);
-            if (confirm == false) return false;
-
-            String urlId = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/orden/by";
-            String jsonId = dbClient.get(urlId, null);
-
-
-            JsonObject root = JsonParser.parseString(jsonId).getAsJsonObject();
-            JsonArray items = root.getAsJsonArray("items");
-
-            int firstDietId = -1; // valor por defecto si no hay items
-            if (items != null && items.size() > 0) {
-                JsonObject firstItem = items.get(0).getAsJsonObject();
-                firstDietId = firstItem.get("diet_id").getAsInt();
-            }
-
-            List<LocalTime> horasDistribuidas = DistribuidorDeCalorias.obtenerHoras(comidasPorDia);
-            LocalDate fechaInicio = LocalDate.now();
-
-            for (int i = 0; i < 7; i++) {
-                LocalDate diaActual = fechaInicio.plusDays(i);
-                String nombreDia = diaActual.getDayOfWeek().toString();
-                if (nombreDia.equalsIgnoreCase(diaDescanso)) continue;
-
-                for (int j = 0; j < planComidas.size(); j++) {
-                    ComidaProgramada comida = planComidas.get(j);
-                    LocalTime hora = horasDistribuidas.get(j); // asigna una hora única por comida
-
-                    for (Meal alimento : comida.getOpciones()) {
-                        Map<String, Object> jsonMap = new HashMap<>();
-
-                        jsonMap.put("diet_id", firstDietId);
-                        jsonMap.put("meal_base_id", alimento.getMealBaseId());// Convertir LocalDate a ISO 8601 con zona horaria UTC
-                        OffsetDateTime dayUtc = diaActual.atStartOfDay().atOffset(ZoneOffset.UTC);
-                        OffsetDateTime timeOfDayUtc = diaActual.atTime(hora).atOffset(ZoneOffset.UTC);
-
-                        jsonMap.put("day", dayUtc.toString());             // ejemplo: "2025-05-21T00:00:00Z"
-                        jsonMap.put("time_of_day", timeOfDayUtc.toString()); // ejemplo: "2025-05-21T08:00:00Z"
-
-                        jsonMap.put("meal_type", comida.getTipo());
-
-                        String jsonBody = new Gson().toJson(jsonMap);
-                        System.out.println(jsonBody);
-                        String endpoint = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/diet_meal/";
-
-                        dbClient.post(endpoint, jsonBody, null);
-                    }
-                }
-            }
-
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            params.addAll(usedMeals);
         }
+
+        sql.append("ORDER BY RAND() LIMIT 1");
+
+        JsonArray rows =
+                query(
+                        c,
+                        sql.toString(),
+                        params.toArray()
+                );
+
+        return rows.isEmpty()
+                ? null
+                : MealAdapter.adaptAndDeserialize(
+                        rows.get(0).toString()
+                );
+    }
+
+    public Meal getMealsByTypeAndCalories(
+        int calories,
+        String type
+    ) throws IOException {
+
+        return db.read(c -> {
+
+            JsonArray rows = query(
+                    c,
+                    "SELECT * FROM mealbase " +
+                    "WHERE calories >= 1 " +
+                    "AND calories <= ? " +
+                    "AND meal_type = ? " +
+                    "ORDER BY RAND() LIMIT 1",
+                    calories,
+                    type
+            );
+
+            return rows.isEmpty()
+                    ? null
+                    : MealAdapter.adaptAndDeserialize(
+                            rows.get(0).toString()
+                    );
+        });
+    }
+    
+    private Map<String, Object> dietData(
+            int userId,
+            int patientId,
+            ValoresNutricionales values,
+            String restDay,
+            int mealsPerDay,
+            String note
+    ) {
+
+        return new Gson().fromJson(
+                new Gson().toJson(
+                        new DietRequest(
+                                userId,
+                                patientId,
+                                values,
+                                restDay,
+                                mealsPerDay,
+                                note
+                        )
+                ),
+                new com.google.gson.reflect.TypeToken<
+                        Map<String, Object>
+                        >() {
+                }.getType()
+        );
     }
 
     public boolean sendDiet(
-                                     int userId,
-                                     int patientId,
-                                     ValoresNutricionales valores,
-                                     String restDay, // Puede ser null
-                                     int mealsPerDay,
-                                     String note) throws IOException {
+            int userId,
+            int patientId,
+            ValoresNutricionales values,
+            String restDay,
+            int mealsPerDay,
+            String note
+    ) throws IOException {
 
-        // Pasa targetGender tal cual, puede ser null
-        DietRequest dieta = new DietRequest(userId, patientId, valores, restDay, mealsPerDay, note);
-
-        // Serializa. Si targetGender es null, no se incluirá en el JSON (por defecto Gson lo omite)
-        String json = gson.toJson(dieta);
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "application/json");
-
-        String url = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/diet/";
-        String response = dbClient.post(url, json, headers);
-
-        return response != null && !response.isEmpty();
+        return db.read(c ->
+                DietRepository.insertDiet(
+                        c,
+                        dietData(
+                                userId,
+                                patientId,
+                                values,
+                                restDay,
+                                mealsPerDay,
+                                note
+                        )
+                ) > 0
+        );
     }
 
+    public boolean createNewDiet(
+            double calories,
+            int mealsPerDay,
+            String restDay,
+            int userId,
+            int patientId,
+            String note
+    ) {
 
-    public Meal getMealsByTypeAndCalories(int calories, String mealType) throws IOException {
-        String baseUrl = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/random/base";
-        String url = baseUrl + "?calories=" + calories + "&meal_type=" + mealType;
+        if (!Double.isFinite(calories)
+                || calories <= 0
+                || calories > 6000
+                || mealsPerDay < 1
+                || mealsPerDay > 6
+                || patientId <= 0) {
 
-        Map<String, String> headers = new HashMap<>();
-
-        // Obtener JSON en String
-        String responseJson = dbClient.get(url, headers);
-
-        // Parsear con Gson
-        JsonObject rootObj = JsonParser.parseString(responseJson).getAsJsonObject();
-        JsonArray itemsArray = rootObj.getAsJsonArray("items");
-
-        if (itemsArray == null || itemsArray.size() == 0) {
-            throw new IOException("No se encontraron items o el formato es incorrecto");
+            return false;
         }
 
-        List<Integer> ids = new ArrayList<>();
-        for (int i = 0; i < itemsArray.size(); i++) {
-            JsonObject item = itemsArray.get(i).getAsJsonObject();
-            if (item.has("meal_base_id")) {
-                ids.add(item.get("meal_base_id").getAsInt());
-            }
+        try {
+
+            return db.transaction(c -> {
+
+                List<ComidaProgramada> plan =
+                        DistribuidorDeCalorias.distribuir(
+                                calories,
+                                mealsPerDay
+                        );
+
+                String[] tiempos =
+                        DistribuidorDeCalorias.obtenerTiempos(
+                                mealsPerDay
+                        );
+
+                ValoresNutricionales totals =
+                        new ValoresNutricionales();
+
+                // Guarda los alimentos utilizados durante
+                // TODA la dieta para evitar repeticiones.
+                Set<Integer> usedMeals =
+                        new HashSet<>();
+
+                for (int i = 0; i < plan.size(); i++) {
+
+                    ComidaProgramada scheduled =
+                            plan.get(i);
+
+                    String mealTime =
+                            tiempos[i];
+
+                    int remaining =
+                            (int) scheduled.getCaloriasAsignadas();
+
+                    while (remaining > 0) {
+
+                        Meal meal =
+                                selectMeal(
+                                        c,
+                                        remaining,
+                                        scheduled.getTipo(),
+                                        mealTime,
+                                        usedMeals
+                                );
+
+                        if (meal == null) {
+                            break;
+                        }
+
+                        scheduled.agregarOpcion(meal);
+
+                        totals.agregar(meal);
+
+                        // Registramos el ID para que no
+                        // vuelva a utilizarse.
+                        usedMeals.add(
+                                meal.getMealBaseId()
+                        );
+
+                        remaining =
+                                (int) (
+                                        remaining
+                                                - meal.getCalories()
+                                );
+                    }
+
+                    if (scheduled.getOpciones().isEmpty()) {
+
+                        throw new IOException(
+                                "No hay alimentos para "
+                                        + mealTime
+                                        + " dentro del presupuesto de calorías."
+                        );
+                    }
+                }
+
+                int dietId =
+                        DietRepository.insertDiet(
+                                c,
+                                dietData(
+                                        userId,
+                                        patientId,
+                                        totals,
+                                        restDay,
+                                        mealsPerDay,
+                                        note
+                                )
+                        );
+
+                List<LocalTime> times =
+                        DistribuidorDeCalorias.obtenerHoras(
+                                mealsPerDay
+                        );
+
+                LocalDate start =
+                        LocalDate.now();
+
+                for (int i = 0; i < 7; i++) {
+
+                    LocalDate day =
+                            start.plusDays(i);
+
+                    if (day.getDayOfWeek()
+                            .name()
+                            .equalsIgnoreCase(restDay)) {
+
+                        continue;
+                    }
+
+                    for (int j = 0;
+                         j < plan.size();
+                         j++) {
+
+                        ComidaProgramada scheduled =
+                                plan.get(j);
+
+                        for (Meal meal :
+                                scheduled.getOpciones()) {
+
+                            execute(
+                                    c,
+                                    "INSERT INTO diet_meal " +
+                                    "(diet_id, meal_base_id, day, " +
+                                    "time_of_day, meal_type) " +
+                                    "VALUES (?, ?, ?, ?, ?)",
+
+                                    dietId,
+                                    meal.getMealBaseId(),
+                                    day,
+                                    day.atTime(times.get(j)),
+                                    scheduled.getTipo()
+                            );
+                        }
+                    }
+                }
+
+                return true;
+            });
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+            return false;
         }
-
-
-        if (ids.isEmpty()) {
-            throw new IOException("No se encontraron meal_base_id válidos");
-        }
-
-        // Elegir uno al azar
-        Random random = new Random();
-        int randomIndex = random.nextInt(ids.size());
-        int mealElected = ids.get(randomIndex);
-
-        return getMealById(mealElected);
     }
-
 }

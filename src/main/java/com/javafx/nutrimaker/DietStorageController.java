@@ -282,7 +282,7 @@ public class DietStorageController implements Initializable {
     private void refreshButtons() throws IOException{
         DietRepository dietRepo = new DietRepository();        
         prevButton.setVisible(offset > 0);        
-        nextButton.setVisible(offset < (dietRepo.getTotalDietsCount() - LIMIT));
+        nextButton.setVisible(offset < (dietRepo.getTotalDietsCount(com.javafx.nutrimaker.models.User.getUser().getId()) - LIMIT));
     }
     
     private void refreshTable() throws IOException{
