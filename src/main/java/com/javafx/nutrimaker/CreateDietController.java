@@ -39,6 +39,9 @@ import javafx.stage.StageStyle;
 public class CreateDietController implements Initializable {
 
     private String userEmail;
+    private int patientId;
+
+    public void setPatientId(int patientId) { this.patientId = patientId; }
 
     @FXML
     private Button saveButton;
@@ -91,23 +94,16 @@ public class CreateDietController implements Initializable {
 
     private String getRestDay() {
         String day = selectFreeDay.getValue();
-        if (day.equals("Lunes")) {
-            return "MONDAY";
-        } else if (day.equals("Martes")) {
-            return "TUESDAY";
-        } else if (day.equals("Miercoles")) {
-            return "WEDNESDAY";
-        } else if (day.equals("Jueves")) {
-            return "THURSDAY";
-        } else if (day.equals("Viernes")) {
-            return "FRIDAY";
-        } else if (day.equals("Sabado")) {
-            return "SATURDAY";
-        } else if (day.equals("Domingo")) {
-            return "SUNDAY";
-        } else {
-            return "UNKNOWN";
-        }
+        return switch (day) {
+            case "Lunes" -> "MONDAY";
+            case "Martes" -> "TUESDAY";
+            case "Miercoles" -> "WEDNESDAY";
+            case "Jueves" -> "THURSDAY";
+            case "Viernes" -> "FRIDAY";
+            case "Sabado" -> "SATURDAY";
+            case "Domingo" -> "SUNDAY";
+            default -> "UNKNOWN";
+        };
     }
 
     public void setUserEmail(String uE) {
@@ -120,9 +116,8 @@ public class CreateDietController implements Initializable {
             double cantCalories = Double.parseDouble(calTextField.getText());
             int foodQuantity = Integer.parseInt(quantityFoodDistribution.getValue());
             String note = commentTextField.getText();
-            PatientRepository patient = new PatientRepository();
             MealRepository mealRepository = new MealRepository();
-            if (mealRepository.createNewDiet(cantCalories, foodQuantity, getRestDay(), User.getUser().getId(), patient.getMostRecentPatientId(), note)) {
+            if (mealRepository.createNewDiet(cantCalories, foodQuantity, getRestDay(), User.getUser().getId(), patientId, note)) {
                 dialog("¡La dieta se ha creado con exito!");
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("DietStorage.fxml"));
                 Parent root = loader.load();
@@ -130,6 +125,8 @@ public class CreateDietController implements Initializable {
                 stage.setScene(new Scene(root));
                 stage.setTitle("Almacenamiento de Dietas");
                 stage.show();
+            } else {
+                dialog("No se pudo crear la dieta. Revisa la conexión a MySQL y que el catálogo tenga alimentos suficientes.");
             }
         }
 
