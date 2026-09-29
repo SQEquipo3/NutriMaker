@@ -1,84 +1,30 @@
 package com.javafx.nutrimaker.repository;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.javafx.nutrimaker.database.DatabaseClient;
-import com.javafx.nutrimaker.models.Patient;
-
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static com.javafx.nutrimaker.database.DatabaseClient.*;
 
 public class PatientRepository {
-
-    private static final String BASE_URL = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/patient/";
-    private final DatabaseClient databaseClient;
-    private final Gson gson;
-
-    public PatientRepository() {
-        this.databaseClient = new DatabaseClient();
-        this.gson = new Gson();
-    }
-
-    public int getMostRecentPatientId() throws IOException {
-        String url = "https://g123ac362d4a31c-appnutrimaker.adb.mx-queretaro-1.oraclecloudapps.com/ords/developer/api/patient/recent";
-        String json = databaseClient.get(url, null);
-
-        JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-        JsonArray items = root.getAsJsonArray("items");
-
-        int patientId = -1; // Valor por defecto
-        if (items != null && items.size() > 0) {
-            JsonObject firstItem = items.get(0).getAsJsonObject();
-            patientId = firstItem.get("patient_id").getAsInt();
-        }
-
-        return patientId;
-    }
-
-    //Obtener todos lo pacientes
+    private final DatabaseClient db = new DatabaseClient();
     public String getAllPatients() throws IOException {
-        return databaseClient.get(BASE_URL, null);
+        return db.read(c -> items(query(c, "SELECT * FROM patient ORDER BY patient_id")));
     }
-    //Obtener paciente mediante ID
     public String getPatientById(int id) throws IOException {
-        String url = BASE_URL + id;
-        return databaseClient.get(url, null);
+        return db.read(c -> one(query(c, "SELECT * FROM patient WHERE patient_id=?", id)));
     }
-
+    public int createPatientAndGetId(String name, int age, Double weight, Double height) throws IOException {
+        return db.read(c -> insert(c, "INSERT INTO patient(name,age,weight,height) VALUES (?,?,?,?)", name, age, weight, height));
+    }
     public boolean createPatient(String name, int age, Double weight, Double height) {
-        JsonObject json = new JsonObject();
-        json.addProperty("name", name);
-        json.addProperty("age", age);
-        json.addProperty("weight", weight);
-        json.addProperty("height", height);
-
-        try {
-            databaseClient.post(BASE_URL, json.toString(), null);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+        try { createPatientAndGetId(name, age, weight, height); return true; }
+        catch (IOException e) { e.printStackTrace(); return false; }
     }
-
     public String updatePatient(int id, String name, int age, Double weight, Double height) throws IOException {
-        String url = BASE_URL + id;
-
-        JsonObject json = new JsonObject();
-        json.addProperty("name", name);
-        json.addProperty("age", age);
-        json.addProperty("weight", weight);
-        json.addProperty("height", height);
-
-        return databaseClient.put(url, json.toString(), null);
+        return db.read(c -> {
+            execute(c, "UPDATE patient SET name=?,age=?,weight=?,height=? WHERE patient_id=?", name,age,weight,height,id);
+            return one(query(c, "SELECT * FROM patient WHERE patient_id=?", id));
+        });
     }
-
     public String deletePatient(int id) throws IOException {
-        String url = BASE_URL + id;
-        return databaseClient.delete(url, null);
+        return db.read(c -> "{\"deleted\":" + execute(c, "DELETE FROM patient WHERE patient_id=?", id) + "}");
     }
 }
