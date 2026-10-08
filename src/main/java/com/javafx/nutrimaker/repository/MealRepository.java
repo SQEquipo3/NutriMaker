@@ -211,7 +211,6 @@ public class MealRepository {
 
                     String mealTime =
                             tiempos.get(i).toString();
-
                     int remaining =
                             (int) scheduled.getCaloriasAsignadas();
 

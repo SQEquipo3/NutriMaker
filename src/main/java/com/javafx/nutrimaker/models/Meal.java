@@ -14,7 +14,8 @@ public class Meal {
     private String mealType;
     @SerializedName("meal_group")
     private String mealGroup;
-
+    @SerializedName("meal_time")
+    private String mealTime;
     @SerializedName("meal_calories")
     private double calories;
     @SerializedName("meal_fat")
@@ -181,5 +182,11 @@ public class Meal {
     public void setIngredients(List<Ingredient> ingredients) {
         this.ingredients = ingredients;
     }
+    public String getMealTime() {
+        return mealTime;
+    }
 
+    public void setMealTime(String mealTime) {
+        this.mealTime = mealTime;
+    }
 }
