@@ -52,7 +52,6 @@ public class PatientFormController implements Initializable {
     private void save(ActionEvent event) throws IOException {
         if (checkInputs()) {
             int age = Integer.parseInt(ageTextField.getText());
-<<<<<<< HEAD
             double weight = Double.parseDouble(weightTextField.getText());
             double height = Double.parseDouble(heightTextField.getText());
 
@@ -68,16 +67,6 @@ public class PatientFormController implements Initializable {
 
             // Abrir la ventana de creación de dieta pasando el ID
             createDiet(event, patientId);
-=======
-            double weight = Double.parseDouble(weightTextField.getText()), height = Double.parseDouble(heightTextField.getText());
-            try {
-                patientId = new PatientRepository().createPatientAndGetId(nameTextField.getText(), age, weight, height);
-            } catch (IOException e) {
-                dialog("No se pudo guardar el paciente. Revisa la conexión a MySQL.");
-                return;
-            }
-            createDiet(event);
->>>>>>> 4ca7800cf7fd0d55727cd47f2f4d207f1602ff75
         }
     }
     
@@ -117,7 +106,6 @@ public class PatientFormController implements Initializable {
         );
 
         Parent root = loader.load();
-<<<<<<< HEAD
 
         // Pasar el ID del paciente al controlador de la dieta
         CreateDietController controller = loader.getController();
@@ -126,10 +114,8 @@ public class PatientFormController implements Initializable {
         Stage stage = (Stage) ((Node) event.getSource())
                 .getScene().getWindow();
 
-=======
         ((CreateDietController) loader.getController()).setPatientId(patientId);
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
->>>>>>> 4ca7800cf7fd0d55727cd47f2f4d207f1602ff75
         stage.setScene(new Scene(root));
         stage.setTitle("Crear Dieta");
         stage.show();
