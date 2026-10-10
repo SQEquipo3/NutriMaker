@@ -176,24 +176,10 @@ public class MealRepository {
                                     scheduled.getCaloriasAsignadas(),
                                     scheduled.getTipo(),
                                     excludedForVariety
-                            );
-
-<<<<<<< HEAD
-                            // Si el catálogo no tiene suficientes recetas distintas, permite
+                            );                            // Si el catálogo no tiene suficientes recetas distintas, permite
                             // reutilizar una de otro día, pero nunca repetirla en el mismo día.
                             if (meal == null) {
                                 meal = selectMeal(
-=======
-                    String mealTime =
-                            tiempos.get(i).toString();
-                    int remaining =
-                            (int) scheduled.getCaloriasAsignadas();
-
-                    while (remaining > 0) {
-
-                        Meal meal =
-                                selectMeal(
->>>>>>> 4ca7800cf7fd0d55727cd47f2f4d207f1602ff75
                                         c,
                                         scheduled.getCaloriasAsignadas(),
                                         scheduled.getTipo(),

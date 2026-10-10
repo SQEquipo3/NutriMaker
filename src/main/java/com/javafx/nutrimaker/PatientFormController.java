@@ -115,7 +115,6 @@ public class PatientFormController implements Initializable {
                 .getScene().getWindow();
 
         ((CreateDietController) loader.getController()).setPatientId(patientId);
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.setTitle("Crear Dieta");
         stage.show();

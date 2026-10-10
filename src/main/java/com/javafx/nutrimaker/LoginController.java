@@ -78,8 +78,8 @@ public class LoginController implements Initializable {
         
         //db connection
     }
-
-    public void dialog() throws IOException {
+    
+    public void dialog(String warningMessage) throws IOException {
         URL fxml = getClass().getResource("EmptyInputs.fxml");
 
         if (fxml == null) {
@@ -90,9 +90,8 @@ public class LoginController implements Initializable {
 
         Parent parent = FXMLLoader.load(fxml);
     
-    public void dialog(String warningMessage) throws IOException {
         FXMLLoader loader =new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
-        Parent parent = loader.load();
+
         DialogController dialog = loader.getController();
         dialog.setText(warningMessage);
         Scene scene = new Scene(parent);
