@@ -73,7 +73,7 @@ public class SignUpFormController implements Initializable {
     @FXML
     private void signUp(ActionEvent event) throws IOException {
         if(isEmpty()){
-            dialog();
+            dialog("No se admite texto vacio");
             return;
         }
         if((!checkPassword() || !checkEmail())){
@@ -98,13 +98,16 @@ public class SignUpFormController implements Initializable {
         stage.show();
     }
     
-    public void dialog() throws IOException {
-        Parent parent = FXMLLoader.load(getClass().getResource("EmptyInputs.fxml"));
+    public void dialog(String warningMessage) throws IOException {
+        FXMLLoader loader =new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
+        Parent parent = loader.load();
+        DialogController dialog = loader.getController();
+        dialog.setText(warningMessage);
         Scene scene = new Scene(parent);
         Stage stage = new Stage();
         stage.setScene(scene);
         stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();   
+        stage.show();
     }
     
     public void invalidCredentials() throws IOException{

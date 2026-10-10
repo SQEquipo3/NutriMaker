@@ -32,7 +32,7 @@ public class DietRequest {
         this.protein = v.getProtein();
         this.calcium = v.getCalcium();
         this.iron = v.getIron();
-        this.rest_day = restDay.toUpperCase();
+        this.rest_day = restDay == null ? null : restDay.toUpperCase(java.util.Locale.ROOT);
         this.meals_per_day = mealsPerDay;
         this.note = note;
 

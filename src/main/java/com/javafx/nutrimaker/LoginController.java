@@ -46,9 +46,17 @@ public class LoginController implements Initializable {
 
     private boolean verifyCredentials() {
         UserRepository userRepo = new UserRepository();
-        return userRepo.verifyPasswordByEmail(emailTextField.getText(), passwordTextField.getText());
-    }
 
+        boolean result = userRepo.verifyPasswordByEmail(
+            emailTextField.getText(),
+            passwordTextField.getText()
+        );
+
+        System.out.println("Correo: " + emailTextField.getText());
+        System.out.println("Contraseña válida: " + result);
+
+        return result;
+    }
     private void dietStorage(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("DietStorage.fxml"));
         Parent root = loader.load();
@@ -70,6 +78,7 @@ public class LoginController implements Initializable {
         
         //db connection
     }
+<<<<<<< HEAD
 
     public void dialog() throws IOException {
         URL fxml = getClass().getResource("EmptyInputs.fxml");
@@ -81,6 +90,14 @@ public class LoginController implements Initializable {
         }
 
         Parent parent = FXMLLoader.load(fxml);
+=======
+    
+    public void dialog(String warningMessage) throws IOException {
+        FXMLLoader loader =new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
+        Parent parent = loader.load();
+        DialogController dialog = loader.getController();
+        dialog.setText(warningMessage);
+>>>>>>> 4ca7800cf7fd0d55727cd47f2f4d207f1602ff75
         Scene scene = new Scene(parent);
 
         Stage stage = new Stage();
@@ -88,7 +105,7 @@ public class LoginController implements Initializable {
         stage.initStyle(StageStyle.UNDECORATED);
         stage.show();
     }
-
+    
     public void invalidCredentials() throws IOException{
         Parent parent = FXMLLoader.load(getClass().getResource("checkCredentials.fxml"));
         Scene scene = new Scene(parent);
@@ -101,7 +118,7 @@ public class LoginController implements Initializable {
     @FXML
     public void login(ActionEvent event) throws IOException {
         if(isEmpty()){
-            dialog();
+            dialog("No se admite texto vacio");
             return;
         }
         if((!checkPassword() || !checkEmail()) || !verifyCredentials()){

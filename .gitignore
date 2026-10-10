@@ -1,2 +1,5 @@
 target/
-.idea/
+.build/
+.build-log.txt
+.env
+*.log
