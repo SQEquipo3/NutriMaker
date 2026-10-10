@@ -3,7 +3,6 @@ package com.javafx.nutrimaker;
 import static com.javafx.nutrimaker.animations.AnimationPersonalized.*;
 import java.net.URL;
 import com.javafx.nutrimaker.repository.PatientRepository;
-import com.javafx.nutrimaker.models.Patient;
 import java.io.IOException;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -24,6 +23,7 @@ public class PatientFormController implements Initializable {
     static final String REG_EXP_POSIT_INT = "\\d+";
     
     private String userEmail;
+    private int patientId;
     
     @FXML
     private TextField nameTextField;
@@ -49,7 +49,12 @@ public class PatientFormController implements Initializable {
         if (checkInputs()) {
             int age = Integer.parseInt(ageTextField.getText());
             double weight = Double.parseDouble(weightTextField.getText()), height = Double.parseDouble(heightTextField.getText());
-            new PatientRepository().createPatient(nameTextField.getText(), age, weight, height);
+            try {
+                patientId = new PatientRepository().createPatientAndGetId(nameTextField.getText(), age, weight, height);
+            } catch (IOException e) {
+                dialog("No se pudo guardar el paciente. Revisa la conexión a MySQL.");
+                return;
+            }
             createDiet(event);
         }
     }
@@ -87,6 +92,7 @@ public class PatientFormController implements Initializable {
     private void createDiet(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("CreateDiet.fxml"));
         Parent root = loader.load();
+        ((CreateDietController) loader.getController()).setPatientId(patientId);
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
         stage.setTitle("Crear Dieta");
