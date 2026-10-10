@@ -72,8 +72,17 @@ public class LoginController implements Initializable {
     }
 
     public void dialog() throws IOException {
-        Parent parent = FXMLLoader.load(getClass().getResource("EmptyInputs.fxml"));
+        URL fxml = getClass().getResource("EmptyInputs.fxml");
+
+        if (fxml == null) {
+            throw new IOException(
+                "No se encontró EmptyInputs.fxml. Revisa su ubicación en resources."
+            );
+        }
+
+        Parent parent = FXMLLoader.load(fxml);
         Scene scene = new Scene(parent);
+
         Stage stage = new Stage();
         stage.setScene(scene);
         stage.initStyle(StageStyle.UNDECORATED);

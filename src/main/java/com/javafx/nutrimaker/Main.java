@@ -1,6 +1,5 @@
 package com.javafx.nutrimaker;
 
-import com.javafx.nutrimaker.repository.MealRepository;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
