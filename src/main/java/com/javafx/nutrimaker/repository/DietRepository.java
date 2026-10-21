@@ -88,6 +88,91 @@ public class DietRepository {
         return db.read(c -> one(query(c, "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id)));
     }
 
+    /** Consulta restringida al usuario que inició sesión. */
+    public String getDietByIdForUser(int dietId, int userId) throws IOException {
+        return db.read(c -> {
+            JsonArray rows = query(c, "SELECT " + DIET_COLUMNS +
+                " FROM DIETA WHERE ID_DIETA=? AND ID_USUARIO=?", dietId, userId);
+            if (rows.isEmpty()) throw new IOException("Dieta no encontrada o sin permiso para editarla.");
+            return one(rows);
+        });
+    }
+
+    /** Actualiza únicamente datos generales de una dieta del usuario. No regenera comidas. */
+    public void updateDietForUser(int dietId, int userId, Map<String, Object> data) throws IOException {
+        Map<String, Object> values = validated(data);
+        Set<String> allowed = Set.of("CALORIAS", "COMENTARIO", "DIA_DESCANSO", "CANTIDAD_COMIDAS");
+        if (!allowed.containsAll(values.keySet()))
+            throw new IllegalArgumentException("La edición contiene campos no permitidos.");
+        String assignments = String.join(",", values.keySet().stream().map(k -> k + "=?").toList());
+        List<Object> args = new ArrayList<>(values.values());
+        args.add(dietId);
+        args.add(userId);
+        db.transaction(c -> {
+            JsonArray existing = query(c,
+                "SELECT ID_DIETA FROM DIETA WHERE ID_DIETA=? AND ID_USUARIO=?", dietId, userId);
+            if (existing.isEmpty()) throw new IOException("Dieta no encontrada o sin permiso para editarla.");
+            // Mantener la planificación semanal sincronizada con DIA_DESCANSO.
+            JsonObject current = query(c,
+                "SELECT DIA_DESCANSO, CANTIDAD_COMIDAS FROM DIETA WHERE ID_DIETA=? AND ID_USUARIO=? FOR UPDATE",
+                dietId, userId).get(0).getAsJsonObject();
+            String oldRest = nullableString(current, "DIA_DESCANSO");
+            String newRest = values.containsKey("DIA_DESCANSO")
+                ? String.valueOf(values.get("DIA_DESCANSO")) : oldRest;
+            int oldDay = weekdayNumber(oldRest);
+            int newDay = weekdayNumber(newRest);
+            if (values.containsKey("CANTIDAD_COMIDAS") &&
+                current.has("CANTIDAD_COMIDAS") && !current.get("CANTIDAD_COMIDAS").isJsonNull() &&
+                current.get("CANTIDAD_COMIDAS").getAsInt() != Integer.parseInt(String.valueOf(values.get("CANTIDAD_COMIDAS")))) {
+                throw new IOException("No se puede cambiar la cantidad de comidas sin regenerar la dieta.");
+            }
+            if (!Objects.equals(oldRest, newRest)) {
+                if (oldDay < 1 || newDay < 1)
+                    throw new IOException("No se pudo reconocer el día de descanso original o nuevo.");
+                JsonArray counts = query(c, """
+                    SELECT DIA_SEMANA AS day, COUNT(*) AS total FROM COMIDA
+                    WHERE ID_DIETA=? AND DIA_SEMANA IS NOT NULL
+                    GROUP BY DIA_SEMANA
+                    """, dietId);
+                if (counts.isEmpty())
+                    throw new IOException("Esta dieta no tiene comidas semanales; no es posible intercambiar días.");
+                int oldCount = 0, newCount = 0;
+                for (JsonElement e : counts) {
+                    JsonObject row = e.getAsJsonObject();
+                    int day = row.get("day").getAsInt();
+                    if (day == oldDay) oldCount = row.get("total").getAsInt();
+                    if (day == newDay) newCount = row.get("total").getAsInt();
+                }
+                if (oldCount != 0)
+                    throw new IOException("El día de descanso anterior contiene comidas. Revisa el plan antes de modificarlo.");
+                if (newCount == 0)
+                    throw new IOException("El nuevo día de descanso no contiene comidas para trasladar.");
+                execute(c, "UPDATE COMIDA SET DIA_SEMANA=? WHERE ID_DIETA=? AND DIA_SEMANA=?",
+                    oldDay, dietId, newDay);
+            }
+            execute(c, "UPDATE DIETA SET " + assignments + " WHERE ID_DIETA=? AND ID_USUARIO=?",
+                args.toArray());
+            return true;
+        });
+    }
+
+    /** ISO: lunes=1, ..., domingo=7. */
+    private static int weekdayNumber(String name) {
+        if (name == null) return -1;
+        String n = java.text.Normalizer.normalize(name.trim().toUpperCase(Locale.ROOT),
+            java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return switch (n) {
+            case "MONDAY", "LUNES" -> 1;
+            case "TUESDAY", "MARTES" -> 2;
+            case "WEDNESDAY", "MIERCOLES" -> 3;
+            case "THURSDAY", "JUEVES" -> 4;
+            case "FRIDAY", "VIERNES" -> 5;
+            case "SATURDAY", "SABADO" -> 6;
+            case "SUNDAY", "DOMINGO" -> 7;
+            default -> -1;
+        };
+    }
+
     public String getDietsByUserId(int id) throws IOException {
         return db.read(c -> items(query(c,
                 "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_USUARIO=? ORDER BY ID_DIETA DESC", id)));
@@ -160,6 +245,65 @@ public class DietRepository {
             execute(c, "DELETE FROM COMIDA WHERE ID_DIETA=?", id);
             int deleted = execute(c, "DELETE FROM DIETA WHERE ID_DIETA=?", id);
             return "{\"deleted\":" + deleted + "}";
+        });
+    }
+
+
+    /** Clona la dieta para un paciente existente o registra uno nuevo en la MISMA transacción. */
+    public int cloneDietForPatient(int sourceDietId, int userId, Integer existingPatientId,
+                                   String newName, Integer newAge, Double newWeight, Double newHeight)
+            throws IOException {
+        if (sourceDietId <= 0 || userId <= 0) throw new IllegalArgumentException("Identificadores inválidos.");
+        boolean creating = existingPatientId == null;
+        if (creating) {
+            if (newName == null || newName.isBlank() || newName.trim().length() > 50 ||
+                newAge == null || newAge <= 0 || newAge > 120 ||
+                newWeight == null || !Double.isFinite(newWeight) || newWeight <= 0 || newWeight > 999.99 ||
+                newHeight == null || !Double.isFinite(newHeight) || newHeight <= 0 || newHeight >= 10)
+                throw new IllegalArgumentException("Datos del nuevo paciente inválidos: nombre (1-50 caracteres), edad (1-120), peso (0-999.99 kg), altura en metros (0-10).");
+        } else if (existingPatientId <= 0) {
+            throw new IllegalArgumentException("Selecciona un paciente válido.");
+        }
+        return db.transaction(c -> {
+            JsonArray sources = query(c, "SELECT " + DIET_COLUMNS +
+                    " FROM DIETA WHERE ID_DIETA=? AND ID_USUARIO=? FOR UPDATE", sourceDietId, userId);
+            if (sources.isEmpty()) throw new IOException("Dieta no encontrada o sin permisos.");
+            JsonObject source = sources.get(0).getAsJsonObject();
+            int sourcePatientId = source.get("patient_id").getAsInt();
+            int targetPatientId;
+            if (creating) {
+                targetPatientId = nextId(c, "PACIENTE", "ID_PACIENTE");
+                execute(c, "INSERT INTO PACIENTE (ID_PACIENTE,NOMBRE,EDAD,PESO,ALTURA) VALUES (?,?,?,?,?)",
+                        targetPatientId, newName.trim(), newAge, newWeight, newHeight);
+            } else {
+                if (existingPatientId == sourcePatientId)
+                    throw new IOException("El paciente destinatario debe ser diferente del original.");
+                if (query(c, "SELECT ID_PACIENTE FROM PACIENTE WHERE ID_PACIENTE=?", existingPatientId).isEmpty())
+                    throw new IOException("No existe el paciente seleccionado.");
+                targetPatientId = existingPatientId;
+            }
+            Map<String,Object> data = new LinkedHashMap<>();
+            for (Map.Entry<String,String> field : FIELD_MAP.entrySet()) {
+                String key = field.getKey();
+                if (!key.equals(key.toLowerCase(Locale.ROOT)) || key.equals("creation_date") ||
+                    key.equals("patient_id") || key.equals("user_id")) continue;
+                JsonElement value = source.get(key);
+                if (value != null && !value.isJsonNull()) {
+                    Object v = value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()
+                            ? value.getAsNumber() : value.getAsString();
+                    data.put(key, v);
+                }
+            }
+            data.put("patient_id", targetPatientId);
+            data.put("user_id", userId);
+            int newDietId = insertDiet(c, data);
+            JsonArray meals = query(c,
+                "SELECT ID_COMIDA FROM COMIDA WHERE ID_DIETA=? ORDER BY DIA_SEMANA,HORA,ID_COMIDA", sourceDietId);
+            if (meals.isEmpty()) throw new IOException("La dieta original no contiene comidas para copiar.");
+            for (JsonElement element : meals) {
+                copyMealToDiet(c, element.getAsJsonObject().get("ID_COMIDA").getAsInt(), newDietId, null);
+            }
+            return newDietId;
         });
     }
 

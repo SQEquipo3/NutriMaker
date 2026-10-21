@@ -143,23 +143,23 @@ public class DietStorageController implements Initializable {
                         DietStorageController.class.getResource("images/pdf.png").toExternalForm());
                         ImageView cloneIcon = new ImageView(
                         DietStorageController.class.getResource("images/clone.png").toExternalForm()); 
-                        //ImageView editIcon = new ImageView(
-                        //DietStorageController.class.getResource("images/edit.png").toExternalForm());
+                        ImageView editIcon = new ImageView(
+                        DietStorageController.class.getResource("images/edit.png").toExternalForm());
                         ImageView deleteIcon = new ImageView(
                         DietStorageController.class.getResource("images/delete.png").toExternalForm());
                         DropShadow shadow = new DropShadow(5, 2, 2, Color.rgb(0, 0, 0, 0.4));
                         Button pdf = new Button("",pdfIcon);
                         Button clone = new Button("",cloneIcon);
-                        //Button edit = new Button("",editIcon);
+                        Button edit = new Button("",editIcon);
                         Button delete = new Button("",deleteIcon);
                         
-                        for(ImageView icon: new ImageView[]{pdfIcon,cloneIcon,deleteIcon}){
+                        for(ImageView icon: new ImageView[]{pdfIcon,cloneIcon,editIcon,deleteIcon}){
                             icon.setEffect(shadow);
                             icon.setFitHeight(30);
                             icon.setFitWidth(30);
                         }
 
-                        for(Button btn: new Button[]{pdf,clone,delete}){
+                        for(Button btn: new Button[]{pdf,clone,edit,delete}){
                             btn.setPrefSize(30, 30);
                             btn.setStyle("-fx-background-color: none; -fx-border-color: none;");
                             btn.setCursor(Cursor.HAND);
@@ -225,6 +225,30 @@ public class DietStorageController implements Initializable {
                             }
                         });
 
+                        edit.setOnAction(event -> {
+                            DietSummary selected = getTableView().getItems().get(getIndex());
+                            try {
+                                FXMLLoader loader = new FXMLLoader(getClass().getResource("EditDiet.fxml"));
+                                Parent root = loader.load();
+                                EditDietController controller = loader.getController();
+                                controller.setDietId(selected.getDietId());
+                                Stage popup = new Stage();
+                                popup.initOwner(dietsTable.getScene().getWindow());
+                                popup.initModality(Modality.WINDOW_MODAL);
+                                popup.setTitle("Editar Dieta");
+                                popup.setScene(new Scene(root));
+                                popup.showAndWait();
+                                if (controller.isSaved()) {
+                                    showDietList();
+                                }
+                            } catch (IOException ex) {
+                                Logger.getLogger(DietStorageController.class.getName()).log(Level.SEVERE, "Error al editar dieta", ex);
+                                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                                alert.setContentText("No se pudo abrir la edición: " + ex.getMessage());
+                                alert.showAndWait();
+                            }
+                        });
+                        
                         delete.setOnAction(event -> {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("AskDialog.fxml"));
                             Parent root = null;
@@ -264,7 +288,7 @@ public class DietStorageController implements Initializable {
                             }
                         });
                         HBox actions = new HBox(10);
-                        actions.getChildren().addAll(pdf,clone,delete);
+                        actions.getChildren().addAll(pdf,clone,edit,delete);
                         actions.setAlignment(Pos.CENTER);
                         actions.setPadding(new Insets(5));
                         setGraphic(actions);

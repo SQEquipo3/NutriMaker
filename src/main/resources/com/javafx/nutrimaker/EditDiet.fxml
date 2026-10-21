@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<BorderPane prefHeight="760.0" prefWidth="740.0" style="-fx-background-color: #101d4f;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.javafx.nutrimaker.EditDietController">
+  <top>
+    <HBox alignment="CENTER_LEFT" prefHeight="100" style="-fx-background-color: #0e3d58;" spacing="12">
+      <padding><Insets left="28"/></padding>
+      <Label fx:id="dietLabel" text="Editar dieta" textFill="WHITE"><font><Font size="30"/></font></Label>
+    </HBox>
+  </top>
+  <center>
+    <VBox alignment="CENTER_LEFT" spacing="13" style="-fx-background-color: #0c7774; -fx-background-radius: 12;" BorderPane.alignment="CENTER">
+      <BorderPane.margin><Insets top="26" right="26" bottom="26" left="26"/></BorderPane.margin>
+      <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+      <Label text="Calorías objetivo" textFill="WHITE"/>
+      <TextField fx:id="calTextField" promptText="Ej. 1500" prefHeight="38"/>
+      <HBox spacing="20" alignment="CENTER_LEFT">
+        <VBox spacing="10"><Label text="N° de comidas" textFill="WHITE"/><ChoiceBox fx:id="quantityFoodDistribution" prefWidth="200"/></VBox>
+        <VBox spacing="10"><Label text="Día de descanso" textFill="WHITE"/><ChoiceBox fx:id="selectFreeDay" prefWidth="240"/></VBox>
+      </HBox>
+      <Label text="Al cambiar el día libre, sus comidas se trasladan al día libre anterior." textFill="WHITE" wrapText="true"/>
+      <Label text="Comentario" textFill="WHITE"/>
+      <TextField fx:id="commentTextField" promptText="Comentario de la dieta" prefHeight="38"/>
+      <Separator/>
+      <Label text="Clonar dieta para otro paciente" textFill="WHITE" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+      <Label fx:id="originalPatientLabel" text="Paciente original" textFill="WHITE"/>
+      <HBox spacing="22" alignment="CENTER_LEFT">
+        <RadioButton fx:id="existingPatientRadio" text="Paciente registrado" textFill="WHITE"/>
+        <RadioButton fx:id="newPatientRadio" text="Crear paciente nuevo" textFill="WHITE"/>
+      </HBox>
+      <VBox fx:id="existingPatientPane" spacing="6">
+        <Label text="Buscar y seleccionar paciente" textFill="WHITE"/>
+        <ComboBox fx:id="existingPatientCombo" promptText="Nombre del paciente" prefWidth="600"/>
+      </VBox>
+      <VBox fx:id="newPatientPane" spacing="7" managed="false" visible="false">
+        <Label text="Los datos físicos se copian del paciente original; puedes editarlos." textFill="WHITE" wrapText="true"/>
+        <TextField fx:id="newPatientName" promptText="Nombre completo del nuevo paciente"/>
+        <HBox spacing="10">
+          <TextField fx:id="newPatientAge" promptText="Edad" HBox.hgrow="ALWAYS"/>
+          <TextField fx:id="newPatientWeight" promptText="Peso (kg)" HBox.hgrow="ALWAYS"/>
+          <TextField fx:id="newPatientHeight" promptText="Altura (m)" HBox.hgrow="ALWAYS"/>
+        </HBox>
+      </VBox>
+      <Button fx:id="cloneButton" text="Clonar dieta" onAction="#cloneDiet" prefWidth="150" prefHeight="40" style="-fx-background-color: #f1ce84; -fx-text-fill: #101d4f; -fx-background-radius: 5;"/>
+      <HBox alignment="CENTER_RIGHT" spacing="15">
+        <Button fx:id="cancelButton" text="Cancelar" onAction="#cancel" prefWidth="120" prefHeight="40" style="-fx-background-color: #0e3d58; -fx-text-fill: white; -fx-background-radius: 5;"/>
+        <Button fx:id="saveButton" text="Guardar" onAction="#save" prefWidth="120" prefHeight="40" style="-fx-background-color: #b0ceb5; -fx-text-fill: #101d4f; -fx-background-radius: 5;"/>
+      </HBox>
+    </VBox>
+  </center>
+</BorderPane>
