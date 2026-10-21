@@ -51,10 +51,6 @@ public class LoginController implements Initializable {
             emailTextField.getText(),
             passwordTextField.getText()
         );
-
-        System.out.println("Correo: " + emailTextField.getText());
-        System.out.println("Contraseña válida: " + result);
-
         return result;
     }
     private void dietStorage(ActionEvent event) throws IOException {

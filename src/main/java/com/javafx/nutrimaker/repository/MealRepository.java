@@ -62,12 +62,12 @@ public class MealRepository {
         };
     }
 
-    /** Selecciona la receta disponible con más calorías sin superar el presupuesto de la comida. */
+    /** Selecciona aleatoriamente una receta dentro del presupuesto y las exclusiones. */
     private Meal selectMeal(Connection c, double calorieBudget, String type, Set<Integer> usedMeals)
             throws SQLException, IOException {
         List<String> aliases = typeAliases(type);
         StringBuilder sql = new StringBuilder(MEAL_SELECT)
-                .append(" WHERE CALORIAS > 0 AND CALORIAS <= ? AND UPPER(TRIM(TIPO_COMIDA)) IN (");
+                .append(" WHERE DIA_SEMANA IS NULL AND CALORIAS > 0 AND CALORIAS <= ? AND UPPER(TRIM(TIPO_COMIDA)) IN (");
         List<Object> params = new ArrayList<>();
         params.add(calorieBudget);
         for (int i = 0; i < aliases.size(); i++) {
@@ -85,7 +85,9 @@ public class MealRepository {
             sql.append(") ");
             params.addAll(usedMeals);
         }
-        // Aleatoriza entre las recetas que cumplen el presupuesto; ordenar primero por calorías\n        // hacía que se eligiera casi siempre la misma receta en todos los días.\n        sql.append("ORDER BY RAND() LIMIT 1");
+        // Aleatoriza entre las recetas que cumplen el presupuesto; ordenar primero por calorías
+        // hacía que se eligiera casi siempre la misma receta en todos los días.
+        sql.append("ORDER BY RAND() LIMIT 1");
         JsonArray rows = query(c, sql.toString(), params.toArray());
         if (rows.isEmpty()) return null;
         Meal meal = MealAdapter.adaptAndDeserialize(rows.get(0).toString());
@@ -136,6 +138,91 @@ public class MealRepository {
         };
     }
 
+    private static final class MenuCandidate {
+        final List<Meal> meals;
+        final Set<Integer> ids;
+        final double total;
+        final double deviation;
+
+        MenuCandidate(List<Meal> meals, Set<Integer> ids, double total, double deviation) {
+            this.meals = meals;
+            this.ids = ids;
+            this.total = total;
+            this.deviation = deviation;
+        }
+    }
+
+    /** Recupera recetas fuente cercanas a las calorias asignadas, sin limitarse a las inferiores. */
+    private List<Meal> candidatesForSlot(Connection c, ComidaProgramada slot,
+                                          Set<Integer> usedAcrossWeek) throws SQLException {
+        List<String> aliases = typeAliases(slot.getTipo());
+        StringBuilder sql = new StringBuilder(MEAL_SELECT)
+                .append(" WHERE DIA_SEMANA IS NULL AND CALORIAS > 0 AND UPPER(TRIM(TIPO_COMIDA)) IN (");
+        List<Object> args = new ArrayList<>();
+        for (int i = 0; i < aliases.size(); i++) {
+            if (i > 0) sql.append(",");
+            sql.append("?");
+            args.add(aliases.get(i));
+        }
+        sql.append(")");
+        if (!usedAcrossWeek.isEmpty()) {
+            sql.append(" AND ID_COMIDA NOT IN (");
+            for (int i = 0; i < usedAcrossWeek.size(); i++) {
+                if (i > 0) sql.append(",");
+                sql.append("?");
+            }
+            sql.append(")");
+            args.addAll(usedAcrossWeek);
+        }
+        sql.append(" ORDER BY ABS(CALORIAS - ?) ASC LIMIT 60");
+        args.add(slot.getCaloriasAsignadas());
+        JsonArray rows = query(c, sql.toString(), args.toArray());
+        List<Meal> candidates = new ArrayList<>();
+        for (JsonElement row : rows) {
+            candidates.add(MealAdapter.adaptAndDeserialize(row.toString()));
+        }
+        return candidates;
+    }
+
+    /** Busqueda de haz: considera el total diario y las proporciones de cada tiempo. */
+    private List<Meal> selectDailyPlan(Connection c, List<ComidaProgramada> slots,
+                                       double target, Set<Integer> usedAcrossWeek,
+                                       double tolerance) throws SQLException, IOException {
+        List<MenuCandidate> beam = new ArrayList<>();
+        beam.add(new MenuCandidate(new ArrayList<>(), new HashSet<>(), 0, 0));
+        double allocated = 0;
+        for (ComidaProgramada slot : slots) {
+            allocated += slot.getCaloriasAsignadas();
+            List<Meal> candidates = candidatesForSlot(c, slot, usedAcrossWeek);
+            if (candidates.isEmpty()) return null;
+            List<MenuCandidate> expanded = new ArrayList<>();
+            for (MenuCandidate partial : beam) {
+                for (Meal meal : candidates) {
+                    if (partial.ids.contains(meal.getMealBaseId())) continue;
+                    List<Meal> nextMeals = new ArrayList<>(partial.meals);
+                    nextMeals.add(meal);
+                    Set<Integer> nextIds = new HashSet<>(partial.ids);
+                    nextIds.add(meal.getMealBaseId());
+                    double total = partial.total + meal.getCalories();
+                    double deviation = partial.deviation
+                            + Math.abs(meal.getCalories() - slot.getCaloriasAsignadas());
+                    expanded.add(new MenuCandidate(nextMeals, nextIds, total, deviation));
+                }
+            }
+            if (expanded.isEmpty()) return null;
+            final double allocatedSoFar = allocated;
+            expanded.sort(Comparator.comparingDouble(m ->
+                    Math.abs(m.total - allocatedSoFar) + 0.18 * m.deviation));
+            beam = new ArrayList<>(expanded.subList(0, Math.min(180, expanded.size())));
+        }
+        return beam.stream()
+                .filter(m -> Math.abs(m.total - target) <= target * tolerance)
+                .min(Comparator.comparingDouble(m ->
+                        Math.abs(m.total - target) + 0.18 * m.deviation))
+                .map(m -> m.meals)
+                .orElse(null);
+    }
+
     public boolean createNewDiet(double calories, int mealsPerDay, String restDay,
                                  int userId, int patientId, String note) {
         if (!Double.isFinite(calories) || calories <= 0 || calories > 6000 ||
@@ -156,53 +243,24 @@ public class MealRepository {
                 int activeDays = 0;
                 Set<Integer> usedAcrossWeek = new HashSet<>();
 
-                // Cada día obtiene una selección nueva. El día de descanso queda vacío.
-                // Se evita repetir una receta dentro del mismo día, pero puede reutilizarse
-                // en otro día si el catálogo de recetas es limitado.
+                // Busca combinaciones completas, no recetas aleatorias por debajo del limite.
+                // Tolerancia diaria configurable: +/-10% del objetivo solicitado.
+                final double tolerance = 0.10;
                 for (int day = 1; day <= 7; day++) {
                     List<Meal> selectedForDay = new ArrayList<>();
-
                     if (day != restDayIndex) {
                         activeDays++;
-                        Set<Integer> usedMealIds = new HashSet<>();
-
-                        for (ComidaProgramada scheduled : plan) {
-                            // Primero intenta usar una receta que no haya aparecido en días anteriores.
-                            Set<Integer> excludedForVariety = new HashSet<>(usedAcrossWeek);
-                            excludedForVariety.addAll(usedMealIds);
-
-                            Meal meal = selectMeal(
-                                    c,
-                                    scheduled.getCaloriasAsignadas(),
-                                    scheduled.getTipo(),
-                                    excludedForVariety
-                            );                            // Si el catálogo no tiene suficientes recetas distintas, permite
-                            // reutilizar una de otro día, pero nunca repetirla en el mismo día.
-                            if (meal == null) {
-                                meal = selectMeal(
-                                        c,
-                                        scheduled.getCaloriasAsignadas(),
-                                        scheduled.getTipo(),
-                                        usedMealIds
-                                );
-                            }
-
-                            if (meal == null) {
-                                throw new IOException(
-                                        "No hay una receta de tipo " + scheduled.getTipo()
-                                        + " con hasta " + Math.round(scheduled.getCaloriasAsignadas())
-                                        + " kcal. No se creó la dieta semanal."
-                                );
-                            }
-
-                            selectedForDay.add(meal);
-                            usedMealIds.add(meal.getMealBaseId());
+                        selectedForDay = selectDailyPlan(c, plan, calories, usedAcrossWeek, tolerance);
+                        if (selectedForDay == null) {
+                            throw new IOException("No se encontro un menu para el dia " + day
+                                    + " dentro de +/-10% de " + Math.round(calories)
+                                    + " kcal sin repetir recetas. Amplia el catalogo o ajusta el objetivo.");
+                        }
+                        for (Meal meal : selectedForDay) {
                             usedAcrossWeek.add(meal.getMealBaseId());
                             weeklyTotals.agregar(meal);
                         }
                     }
-
-                    // Se conserva una entrada por día para que el índice coincida con DIA_SEMANA.
                     mealsByDay.add(selectedForDay);
                 }
 
