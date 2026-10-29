@@ -1,0 +1,17 @@
+id: UTS-02
+level: UTS
+module: login
+name: Verificar que el inicio de sesión detecte cuando falta el correo, la contraseña
+  o ambos.
+objective: Verificar que el inicio de sesión detecte cuando falta el correo, la contraseña
+  o ambos.
+pre: LoginController accesible desde la prueba, con los campos de correo y contraseña
+  simulados.
+steps:
+- 1.- Correo vacío con contraseña; 2.- Correo con contraseña vacía; 3.- Ambos vacíos
+expected:
+- El método isEmpty devuelve true en los tres casos y evita consultas a la BD.
+reqs:
+- RF-01
+tests:
+- UTS-02
