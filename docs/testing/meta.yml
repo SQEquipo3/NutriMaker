@@ -1,0 +1,40 @@
+team: Team03
+project: NutriMaker
+project_title: NutriMaker
+
+release: "7.0"
+milestone: Entrega SWQA - Test Plan
+department: QA - Equipo 3
+
+testers:
+  - Tester 1
+  - Tester 2
+
+planned_date: "2026-10-31"
+
+environment: >
+  Java, JavaFX, Maven, JUnit 5, Mockito,
+  TestFX, MySQL, JaCoCo y GitHub Actions.
+  Pruebas de interfaz con entorno gráfico virtual en CI.
+
+requirements:
+  - RF-01
+  - RF-02
+  - RF-03
+  - RF-04
+  - RF-05
+  - RF-06
+  - RF-07
+  - RF-08
+
+levels:
+  UTS: Unitarias
+  ITS: Integración
+  STS: Sistema
+  ATS: Aceptación
+
+owners: {}
+
+personas:
+  A: Lalmao
+  B: Stredhy

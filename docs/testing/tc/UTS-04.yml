@@ -1,0 +1,17 @@
+id: UTS-04
+level: UTS
+module: registro
+name: Verificar que el registro rechace correos inválidos y detecte campos vacíos
+  (individuales o totales) para frenar el alta.
+objective: Verificar que el registro rechace correos inválidos y detecte campos vacíos
+  (individuales o totales) para frenar el alta.
+pre: SignUpFormController accesible desde la prueba, con los campos simulados.
+steps:
+- 1.- Probar correo con formato inválido. 2.- Probar un solo campo vacío (parcial).
+  3.- Probar los tres campos vacíos.
+expected:
+- Se rechazan correos inválidos; se detectan correctamente los campos vacíos.
+reqs:
+- RF-02
+tests:
+- UTS-04
