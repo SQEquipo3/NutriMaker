@@ -108,7 +108,7 @@ public class AccessRegistrationSystemTest extends ApplicationTest {
      * @pasos 1.- Abrir LoginForm; 2.- Escribir credenciales válidas; 3.- Pulsar Iniciar Sesión; 4.- Verificar pantalla de dietas.
      * @esperado La ventana muestra Almacenamiento de Dietas y su tabla de dietas.
      */
-    @TC(id="STS-01", rf="RF-01", modulo="acceso-registro")
+    @TC(id="STS-01", rf="RF-01", modulo="login")
     @Test
     void STS_01_inicioSesionCorrecto() throws Exception {
         prepareUser();
@@ -128,7 +128,7 @@ public class AccessRegistrationSystemTest extends ApplicationTest {
      * @pasos 1.- Introducir correo válido y contraseña errónea; 2.- Pulsar Iniciar Sesión; 3.- Comprobar mensaje y permanencia del formulario.
      * @esperado Se muestra un diálogo de credenciales incorrectas y el login permanece abierto.
      */
-    @TC(id="STS-02", rf="RF-01", modulo="acceso-registro")
+    @TC(id="STS-02", rf="RF-01", modulo="login")
     @Test
     void STS_02_rechazarCredencialesInvalidas() throws Exception {
         prepareUser();
@@ -149,7 +149,7 @@ public class AccessRegistrationSystemTest extends ApplicationTest {
      * @pasos 1.- Abrir Registrarse; 2.- Escribir correo y contraseñas válidas; 3.- Confirmar registro; 4.- Comprobar diálogo y usuario persistido.
      * @esperado El usuario queda registrado y aparece el mensaje Registro completado sin cerrar la aplicación.
      */
-    @TC(id="STS-03", rf="RF-02", modulo="acceso-registro")
+    @TC(id="STS-03", rf="RF-02", modulo="registro")
     @Test
     void STS_03_registroConConfirmacion() throws Exception {
         assertTestDatabase();

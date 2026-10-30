@@ -94,12 +94,12 @@ jobs:
           path: entregables/
           if-no-files-found: warn
 
+      # Las pruebas que fallan por un bug abierto (label «bug» que cita su TC) no ponen la corrida
+      # en rojo, como un xfail; cualquier otra falla sí.
       - name: Revisar resultados
-        run: |
-          if grep -lE '<(failure|error)[ >]' target/surefire-reports/TEST-*.xml; then
-            echo "::error::Hay pruebas fallidas (ver archivos arriba)"
-            exit 1
-          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/revisar_resultados.py
 
   # Deja los Excel de la última corrida en main en el release «qa-latest», con enlaces fijos:
   # https://github.com/<repo>/releases/download/qa-latest/<archivo>. Corre aunque fallen pruebas.
