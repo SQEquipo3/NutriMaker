@@ -5,7 +5,9 @@ name: Comprobar que RF-05 registra y recupera correctamente los datos del pacien
 objective: Comprobar que RF-05 registra y recupera correctamente los datos del paciente.
 pre: MySQL de XAMPP disponible y nutrimaker_test con la tabla PACIENTE.
 steps:
-- 1.- Crear paciente con datos identificables; 2.- Consultarlo por su ID;
+- Crear paciente con datos identificables
+- Consultarlo por su ID
+- Comparar nombre, edad, peso y altura con los valores originales.
 expected:
 - El paciente existe con ID positivo y sus datos persisten sin alteraciones.
 reqs:
