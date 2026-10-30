@@ -40,5 +40,14 @@
   },
   "ITS-04::com.javafx.nutrimaker.repository.PatientDietIntegrationTest::ITS_04_registrarYConsultarPacienteEnMySQL": {
     "outcome": "passed"
+  },
+  "ITS-09::com.javafx.nutrimaker.repository.StoredDietIntegrationTest::ITS_09_consultarYClonarSoloDietasPropias": {
+    "outcome": "passed"
+  },
+  "ITS-06::com.javafx.nutrimaker.repository.StoredDietIntegrationTest::ITS_06_listarYPaginarDietasPorUsuario": {
+    "outcome": "passed"
+  },
+  "ITS-08::com.javafx.nutrimaker.repository.StoredDietIntegrationTest::ITS_08_eliminarDietaSinHuerfanos": {
+    "outcome": "passed"
   }
 }

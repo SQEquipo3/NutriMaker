@@ -1,0 +1,16 @@
+id: ITS-08
+level: ITS
+module: eliminar-dieta
+name: Verificar que eliminar una dieta borre sus comidas y relaciones de ingredientes
+  sin afectar otras dietas.
+objective: Verificar que eliminar una dieta borre sus comidas y relaciones de ingredientes
+  sin afectar otras dietas.
+pre: Base nutrimaker_test activa y recetas de prueba disponibles en COMIDA.
+steps:
+- 1.- Crear dos dietas de prueba; 2.- Copiar una comida existente a la primera dieta;
+expected:
+- La dieta y sus relaciones desaparecen; la segunda dieta permanece intacta.
+reqs:
+- RF-07
+tests:
+- ITS-08

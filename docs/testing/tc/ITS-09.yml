@@ -1,0 +1,16 @@
+id: ITS-09
+level: ITS
+module: dietas-almacenadas
+name: Verificar que un usuario solo consulte y clone sus dietas, preservando el detalle
+  de las comidas.
+objective: Verificar que un usuario solo consulte y clone sus dietas, preservando
+  el detalle de las comidas.
+pre: nutrimaker_test activa con al menos una comida de catálogo que se pueda copiar.
+steps:
+- 1.- Crear una dieta de A con una comida y un paciente destino;
+expected:
+- B no consulta ni clona la dieta de A; el clon pertenece a A y conserva las comidas.
+reqs:
+- RF-03
+tests:
+- ITS-09
