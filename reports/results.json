@@ -1,1 +1,47 @@
-{}
+{
+  "UTS-07::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_07_validarEdadYNombrePaciente": {
+    "outcome": "passed"
+  },
+  "UTS-10::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_10_validarDatosExportarDieta": {
+    "outcome": "passed"
+  },
+  "UTS-08::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_08_validarAlturaYPesoPaciente": {
+    "outcome": "passed"
+  },
+  "UTS-09::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_09_validarParametrosModificacionDietas": {
+    "outcome": "passed"
+  },
+  "UTS-06::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_06_parametrosGeneracionDietas": {
+    "outcome": "passed"
+  },
+  "UTS-05::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_05_validarCaloriasDietas": {
+    "outcome": "passed"
+  },
+  "UTS-01::com.javafx.nutrimaker.LoginControllerTest::UTS_01_correosValidos": {
+    "outcome": "passed"
+  },
+  "UTS-01::com.javafx.nutrimaker.LoginControllerTest::UTS_01_correosInvalidos": {
+    "outcome": "passed"
+  },
+  "UTS-03::com.javafx.nutrimaker.LoginControllerTest::UTS_03_validarContrasenaRegistro": {
+    "outcome": "passed"
+  },
+  "UTS-02::com.javafx.nutrimaker.LoginControllerTest::UTS_02_credencialesIncompletasNoLlamanBD": {
+    "outcome": "passed"
+  },
+  "UTS-01::com.javafx.nutrimaker.LoginControllerTest::UTS_01_correoVacioONull": {
+    "outcome": "passed"
+  },
+  "UTS-04::com.javafx.nutrimaker.LoginControllerTest::UTS_04_rechazarRegistroInvalido": {
+    "outcome": "passed"
+  },
+  "ITS-02::com.javafx.nutrimaker.repository.UserRepositoryTest::ITS_02_registrarUsuarioEnMySQL": {
+    "outcome": "passed"
+  },
+  "ITS-03::com.javafx.nutrimaker.repository.UserRepositoryTest::ITS_03_rechazarRegistroConCorreoDuplicado": {
+    "outcome": "passed"
+  },
+  "ITS-01::com.javafx.nutrimaker.repository.UserRepositoryTest::ITS_01_autenticarUsuarioAlmacenadoEnMySQL": {
+    "outcome": "passed"
+  }
+}
