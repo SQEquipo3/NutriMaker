@@ -19,7 +19,8 @@ META = ROOT / 'docs/testing/meta.yml'
 
 def catalogo():
     cases = []
-    pattern = re.compile(r'/\*\*(.*?)\*/\s*@TC\s*\((.*?)\)', re.S)
+    # Entre el Javadoc y @TC puede haber otras anotaciones (@Test antes de @TC); el Javadoc no cruza otro */
+    pattern = re.compile(r'/\*\*((?:(?!\*/).)*)\*/\s*(?:@(?!TC\b)\w+(?:\([^)]*\))?\s*)*@TC\s*\((.*?)\)', re.S)
     for file in (ROOT/'src/test/java').rglob('*.java'):
         content = file.read_text(encoding='utf-8')
         for doc, args in pattern.findall(content):

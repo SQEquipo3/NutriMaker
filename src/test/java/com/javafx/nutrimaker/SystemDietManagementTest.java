@@ -45,7 +45,7 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
      * @esperado Los valores nuevos persisten y el diálogo de edición se cierra.
      */
     @Test
-    @TC(id = "STS-07", rf = "RF-06", modulo = "dietas")
+    @TC(id = "STS-07", rf = "RF-06", modulo = "modificar-dieta")
     void STS_07_modificarDietaYPersistir() throws Exception {
         prepararOnceDietas();
         int id = filas().get(0).getDietId();
@@ -70,7 +70,7 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
      * @esperado La dieta desaparece de la tabla y de la base de datos.
      */
     @Test
-    @TC(id = "STS-08", rf = "RF-07", modulo = "dietas")
+    @TC(id = "STS-08", rf = "RF-07", modulo = "eliminar-dieta")
     void STS_08_eliminarDietaConConfirmacion() throws Exception {
         prepararOnceDietas();
         int id = filas().get(0).getDietId();
@@ -93,7 +93,7 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
      * @nota La inspección visual del formato puede registrarse adicionalmente como evidencia manual.
      */
     @Test
-    @TC(id = "STS-09", rf = "RF-08", modulo = "pdf")
+    @TC(id = "STS-09", rf = "RF-08", modulo = "exportacion")
     void STS_09_exportarPdfConPacienteYMenu() throws Exception {
         String email = crearUsuario();
         int pacienteId = crearPaciente("PDF37");
