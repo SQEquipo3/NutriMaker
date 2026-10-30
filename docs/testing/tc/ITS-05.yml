@@ -1,0 +1,15 @@
+id: ITS-05
+level: ITS
+module: crear-dieta
+name: Verificar que RF-04 genera y guarda una dieta completa para el paciente correcto.
+objective: Verificar que RF-04 genera y guarda una dieta completa para el paciente
+  correcto.
+pre: Base nutrimaker_test con recetas fuente suficientes para seis días,
+steps:
+- 1.- Registrar usuario y dos pacientes; 2.- Generar para el primer paciente
+expected:
+- La dieta pertenece al paciente elegido, no al último creado;
+reqs:
+- RF-04
+tests:
+- ITS-05
