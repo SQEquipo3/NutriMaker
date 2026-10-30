@@ -1,19 +1,18 @@
 id: STS-03
 level: STS
-module: registro
-name: Registrar un usuario desde la interfaz
-objective: Verificar el alta desde la pantalla de registro.
-pre: El correo nuevo no existe.
+module: acceso-registro
+name: Verificar el registro desde JavaFX y la confirmación visible al usuario.
+objective: Verificar el registro desde JavaFX y la confirmación visible al usuario.
+pre: Base nutrimaker_test disponible y correo temporal no registrado.
 steps:
-- En el inicio de sesión, clic en Registrarse.
-- Capturar correo, contraseña y confirmación válidos.
-- Aceptar el diálogo.
-- Verificar el usuario en MySQL.
+- Abrir Registrarse
+- Escribir correo y contraseñas válidas
+- Confirmar registro
+- Comprobar diálogo y usuario persistido.
 expected:
-- Se abre el formulario de registro.
-- Se envía el registro.
-- Aparece el mensaje de registro completado sin errores.
-- Existe la fila con la contraseña en hash.
+- El usuario queda registrado y aparece el mensaje Registro completado sin cerrar
+  la aplicación.
 reqs:
 - RF-02
-tests: []
+tests:
+- STS-03

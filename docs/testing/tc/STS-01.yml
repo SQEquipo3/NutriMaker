@@ -1,17 +1,19 @@
 id: STS-01
 level: STS
-module: login
-name: Iniciar sesión desde JavaFX
-objective: Verificar el inicio de sesión desde la interfaz.
-pre: Usuario test1@nutri.com registrado.
+module: acceso-registro
+name: Verificar que un usuario registrado acceda a almacenamiento de dietas desde
+  JavaFX.
+objective: Verificar que un usuario registrado acceda a almacenamiento de dietas desde
+  JavaFX.
+pre: Base nutrimaker_test disponible y usuario temporal registrado.
 steps:
-- Abrir NutriMaker.
-- Capturar correo y contraseña válidos.
-- Hacer clic en Iniciar Sesión.
+- Abrir LoginForm
+- Escribir credenciales válidas
+- Pulsar Iniciar Sesión
+- Verificar pantalla de dietas.
 expected:
-- Se muestra la pantalla de inicio de sesión.
-- N/A
-- Se abre el almacenamiento de dietas.
+- La ventana muestra Almacenamiento de Dietas y su tabla de dietas.
 reqs:
 - RF-01
-tests: []
+tests:
+- STS-01

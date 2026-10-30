@@ -1,4 +1,13 @@
 {
+  "STS-02::com.javafx.nutrimaker.AccessRegistrationSystemTest::STS_02_rechazarCredencialesInvalidas": {
+    "outcome": "passed"
+  },
+  "STS-01::com.javafx.nutrimaker.AccessRegistrationSystemTest::STS_01_inicioSesionCorrecto": {
+    "outcome": "passed"
+  },
+  "STS-03::com.javafx.nutrimaker.AccessRegistrationSystemTest::STS_03_registroConConfirmacion": {
+    "outcome": "passed"
+  },
   "UTS-07::com.javafx.nutrimaker.DietAndPatientControllerTest::UTS_07_validarEdadYNombrePaciente": {
     "outcome": "passed"
   },
