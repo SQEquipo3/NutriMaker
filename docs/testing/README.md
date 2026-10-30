@@ -15,4 +15,11 @@ python tools/generar_documentos.py
 
 **Estado:** infraestructura adaptada; no hay todavía 40 pruebas JUnit con `@TC`. El modo `--strict` y el generador deben fallar hasta completar el catálogo. No se fabrican resultados de pruebas.
 
+## Excel generados
+Cada push a `main` publica los Excel en el release **`qa-latest`** (pestaña *Releases* del repo), reemplazando los anteriores:
+- `SW_Test_Plan_<equipo>_<proyecto>.xlsx`, `TC_Design_...xlsx`, `SWT_summary_report_...xlsx`
+- `entregables-qa.zip` (los Excel y los diagramas)
+
+En los PR solo quedan como artifact `entregables-qa` de la corrida.
+
 Las plantillas en `docs/testing/plantillas/` se conservan intactas.
