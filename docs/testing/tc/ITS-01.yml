@@ -1,0 +1,18 @@
+id: ITS-01
+level: ITS
+module: usuarios
+name: Verificar que un usuario guardado en la base pueda autenticarse y que las credenciales
+  incorrectas se rechacen.
+objective: Verificar que un usuario guardado en la base pueda autenticarse y que las
+  credenciales incorrectas se rechacen.
+pre: Usuario sembrado en nutrimaker_test con su contraseña en hash BCrypt.
+steps:
+- 1.- Verificar la contraseña correcta del usuario; 2.- Verificar una contraseña incorrecta;
+  3.- Verificar un correo inexistente
+expected:
+- La contraseña correcta devuelve true; la incorrecta y el correo inexistente devuelven
+  false sin lanzar excepción
+reqs:
+- RF-01
+tests:
+- ITS-01

@@ -9,10 +9,13 @@ public class DatabaseClient {
     @FunctionalInterface
     public interface Work<T> { T run(Connection c) throws SQLException, IOException; }
     public Connection connect() throws SQLException {
-        String url = "jdbc:mysql://localhost:3306/nutrimaker?useSSL=false&serverTimezone=UTC";
-        String user = "root";
-        String password = "";
-
+        String url = System.getProperty("nutrimaker.db.url",
+                System.getenv().getOrDefault("NUTRIMAKER_DB_URL",
+                        "jdbc:mysql://localhost:3306/nutrimaker?useSSL=false&serverTimezone=UTC"));
+        String user = System.getProperty("nutrimaker.db.user",
+                System.getenv().getOrDefault("NUTRIMAKER_DB_USER", "root"));
+        String password = System.getProperty("nutrimaker.db.password",
+                System.getenv().getOrDefault("NUTRIMAKER_DB_PASSWORD", ""));
         return DriverManager.getConnection(url, user, password);
     }
     public <T> T read(Work<T> work) throws IOException {
@@ -75,11 +78,7 @@ public class DatabaseClient {
             }
         }
     }
-    /**
-     * El esquema entregado no marca los identificadores como AUTO_INCREMENT.
-     * Solo se permiten combinaciones de tabla/columna conocidas para evitar SQL dinámico arbitrario.
-     * Se usa dentro de una transacción antes de insertar.
-     */
+
     public static int nextId(Connection c, String table, String column) throws SQLException {
         boolean allowed =
                 ("DIETA".equals(table) && "ID_DIETA".equals(column)) ||
