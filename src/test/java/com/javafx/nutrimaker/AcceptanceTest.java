@@ -27,10 +27,6 @@ import static org.testfx.matcher.control.LabeledMatchers.hasText;
 /** Pruebas de aceptación ATS-01 a ATS-10: escenarios del nutriólogo de principio a fin desde JavaFX. */
 public class AcceptanceTest extends NutriMakerGuiTest {
 
-    private boolean visible(String selector) {
-        return robot.lookup(selector).tryQuery().map(n -> n.isVisible() && n.getScene() != null).orElse(false);
-    }
-
     private Stage ventana(String titulo) {
         return Window.getWindows().stream()
                 .filter(w -> w instanceof Stage s && s.isShowing() && titulo.equals(s.getTitle()))
