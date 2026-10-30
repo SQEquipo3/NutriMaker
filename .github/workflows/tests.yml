@@ -18,18 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    # Base de pruebas para las ITS: las pruebas exigen la base nutrimaker_test
-    services:
-      mysql:
-        image: mysql:8.4
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: nutrimaker_test
-        ports: ["3306:3306"]
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
-          --health-interval=5s --health-timeout=5s --health-retries=20
-
     env:
       NUTRIMAKER_DB_USER: nutri_test
       NUTRIMAKER_DB_PASSWORD: ""
@@ -50,16 +38,24 @@ jobs:
       - name: Dependencias del sistema (pantalla virtual para JavaFX)
         run: sudo apt-get update && sudo apt-get install -y xvfb
 
+      # Base de pruebas para las ITS: las pruebas exigen la base nutrimaker_test.
+      # MariaDB como en XAMPP; lower-case-table-names=1 porque el dump crea `usuario` y el
+      # código consulta USUARIO (en Linux los nombres de tabla distinguen mayúsculas).
       - name: Preparar base nutrimaker_test
         run: |
-          mysql -h 127.0.0.1 -uroot -proot -e "
+          docker run -d --name db -p 3306:3306 \
+            -e MARIADB_ROOT_PASSWORD=root -e MARIADB_DATABASE=nutrimaker_test \
+            mariadb:10.11 --lower-case-table-names=1
+          for i in $(seq 1 30); do
+            docker exec db mariadb -uroot -proot -e "SELECT 1" >/dev/null 2>&1 && break
+            sleep 2
+          done
+          docker exec db mariadb -uroot -proot -e "
             CREATE USER IF NOT EXISTS 'nutri_test'@'%' IDENTIFIED BY '';
             GRANT ALL PRIVILEGES ON nutrimaker_test.* TO 'nutri_test'@'%';"
-          # Cuando el esquema esté en el repo (database/*.sql) se carga en orden
-          for f in database/*.sql; do
-            [ -f "$f" ] && mysql -h 127.0.0.1 -uroot -proot nutrimaker_test < "$f"
-          done
-          true
+          # El dump crea y usa la base nutrimaker; se carga en nutrimaker_test
+          sed -E '/^CREATE DATABASE/,/;/d; /^USE /d' NutrimakerDB/nutrimaker.sql \
+            | docker exec -i db mariadb -uroot -proot nutrimaker_test
 
       # failure.ignore: si una prueba falla igual se generan JaCoCo y los Excel; el último paso
       # marca la corrida en rojo.
