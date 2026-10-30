@@ -83,6 +83,8 @@ public abstract class NutriMakerGuiTest {
     /** Abre la aplicación como Main.start: la pantalla de inicio de sesión. */
     @BeforeEach
     void abrirAplicacion() throws Exception {
+        // Ninguna ventana de una prueba anterior debe seguir abierta
+        robot.interact(() -> new ArrayList<>(Window.getWindows()).forEach(Window::hide));
         stage = WaitForAsyncUtils.asyncFx(() -> {
             Stage s = new Stage();
             Parent root = new FXMLLoader(Main.class.getResource("LoginForm.fxml")).load();
@@ -174,19 +176,28 @@ public abstract class NutriMakerGuiTest {
 
     // ------------------------------------------------------------------ interfaz
 
+    /** Búsquedas dentro de la ventana principal de esta prueba (los diálogos son otras ventanas). */
+    protected org.testfx.service.query.NodeQuery enPrincipal(String selector) {
+        return robot.from(stage.getScene().getRoot()).lookup(selector);
+    }
+
+    protected boolean visible(String selector) {
+        return enPrincipal(selector).tryQuery().map(Node::isVisible).orElse(false);
+    }
+
     protected void escribir(String selector, String texto) {
-        TextInputControl campo = robot.lookup(selector).queryAs(TextInputControl.class);
+        TextInputControl campo = enPrincipal(selector).queryAs(TextInputControl.class);
         robot.interact(() -> campo.setText(texto));
     }
 
     protected void elegir(String selector, String opcion) {
         @SuppressWarnings("unchecked")
-        ChoiceBox<String> choice = robot.lookup(selector).queryAs(ChoiceBox.class);
+        ChoiceBox<String> choice = enPrincipal(selector).queryAs(ChoiceBox.class);
         robot.interact(() -> choice.setValue(opcion));
     }
 
     protected void pulsar(String selector) {
-        pulsar(robot.lookup(selector).queryButton());
+        pulsar(enPrincipal(selector).queryButton());
     }
 
     /** Dispara la acción del botón como un clic. Sin gestor de ventanas en Xvfb, el clic del mouse a veces se pierde. */
@@ -250,7 +261,7 @@ public abstract class NutriMakerGuiTest {
 
     @SuppressWarnings("unchecked")
     protected TableView<DietSummary> tabla() {
-        return robot.lookup("#dietsTable").queryAs(TableView.class);
+        return enPrincipal("#dietsTable").queryAs(TableView.class);
     }
 
     protected List<DietSummary> filas() {
@@ -260,7 +271,7 @@ public abstract class NutriMakerGuiTest {
     /** Botón de acción de una fila de la tabla: pdf, clone, edit o delete. */
     protected Button accion(int fila, String icono) {
         robot.interact(() -> tabla().scrollTo(fila));
-        return robot.lookup((Node n) -> n instanceof Button b
+        return robot.from(tabla()).lookup((Node n) -> n instanceof Button b
                         && b.getGraphic() instanceof ImageView iv
                         && iv.getImage() != null && iv.getImage().getUrl().endsWith("/" + icono + ".png")
                         && filaDe(b) == fila)
