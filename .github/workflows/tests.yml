@@ -59,8 +59,9 @@ jobs:
 
       # failure.ignore: si una prueba falla igual se generan JaCoCo y los Excel; el último paso
       # marca la corrida en rojo.
+      # Xvfb a 1920x1080: las ventanas miden 1728x972 y las pruebas STS/ATS hacen clic en ellas.
       - name: Pruebas con cobertura
-        run: xvfb-run -a mvn -B verify -Dmaven.test.failure.ignore=true
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" mvn -B verify -Dmaven.test.failure.ignore=true
 
       - name: Publicar reportes de pruebas
         if: always()
