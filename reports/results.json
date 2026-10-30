@@ -35,13 +35,10 @@
   "UTS-04::com.javafx.nutrimaker.LoginControllerTest::UTS_04_rechazarRegistroInvalido": {
     "outcome": "passed"
   },
-  "ITS-02::com.javafx.nutrimaker.repository.UserRepositoryTest::ITS_02_registrarUsuarioEnMySQL": {
-    "outcome": "passed"
+  "ITS-05::com.javafx.nutrimaker.repository.PatientDietIntegrationTest::ITS_05_generarDietaParaPacienteCorrecto": {
+    "outcome": "failed"
   },
-  "ITS-03::com.javafx.nutrimaker.repository.UserRepositoryTest::ITS_03_rechazarRegistroConCorreoDuplicado": {
-    "outcome": "passed"
-  },
-  "ITS-01::com.javafx.nutrimaker.repository.UserRepositoryTest::ITS_01_autenticarUsuarioAlmacenadoEnMySQL": {
+  "ITS-04::com.javafx.nutrimaker.repository.PatientDietIntegrationTest::ITS_04_registrarYConsultarPacienteEnMySQL": {
     "outcome": "passed"
   }
 }
