@@ -1,0 +1,172 @@
+{
+  "files": {
+    "com/javafx/nutrimaker/repository/MealRepository.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/repository/PatientRepository.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/repository/UserRepository.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/repository/IngredientRepository.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/repository/DietCloneRepository.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/repository/DietRepository.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/DietRequest.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/Meal.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/DietSummary.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/Patient.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/Diet.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/User.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/DietSummaryResponse.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/Ingredient.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/DistribuidorDeCalorias.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/ComidaProgramada.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/ValoresNutricionales.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/models/MealAdapter.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/database/DatabaseClient.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/animations/AnimationPersonalized.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/Main.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/PDFBuilder.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/PatientFormController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/EditDietController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/CreateDietController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/AskDialogController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/DietStorageController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/CheckCredentialsController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/EmailExistsController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/LoginController.java": {
+      "summary": {
+        "percent_covered": 4.918032786885246
+      }
+    },
+    "com/javafx/nutrimaker/SignUpFormController.java": {
+      "summary": {
+        "percent_covered": 9.523809523809524
+      }
+    },
+    "com/javafx/nutrimaker/RegisterSuccessfulController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    },
+    "com/javafx/nutrimaker/DialogController.java": {
+      "summary": {
+        "percent_covered": 0.0
+      }
+    }
+  },
+  "totals": {
+    "percent_covered": 0.4918032786885246
+  }
+}

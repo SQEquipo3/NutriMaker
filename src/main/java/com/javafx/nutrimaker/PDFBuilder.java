@@ -30,6 +30,7 @@ import com.javafx.nutrimaker.models.Diet;
 import com.javafx.nutrimaker.models.Ingredient;
 import com.javafx.nutrimaker.models.Meal;
 import java.awt.Desktop;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -59,7 +60,12 @@ public class PDFBuilder {
     
     public static void exportPdf(Diet diet) throws FileNotFoundException, IOException, MalformedURLException, URISyntaxException{
         generatePdf(diet);
-        Desktop.getDesktop().open(new File(PATH));
+        if (!GraphicsEnvironment.isHeadless()
+                && Desktop.isDesktopSupported()
+                && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+            File archivoPdf = null;
+            Desktop.getDesktop().open(archivoPdf);
+        }    
     }
     
     private static void generatePdf(Diet diet) throws FileNotFoundException, MalformedURLException, IOException, URISyntaxException{         
