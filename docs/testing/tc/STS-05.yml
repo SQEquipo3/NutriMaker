@@ -1,0 +1,19 @@
+id: STS-05
+level: STS
+module: crear-dieta
+name: Generar una dieta desde JavaFX
+objective: Verificar la generación de una dieta desde la pantalla de creación.
+pre: Sesión iniciada con un paciente capturado.
+steps:
+- Capturar 2000 kcal, 3 comidas y día de descanso.
+- Crear la dieta.
+- Esperar el mensaje de resultado.
+- Revisar el almacenamiento de dietas.
+expected:
+- Datos aceptados.
+- La aplicación indica que está trabajando y no se congela.
+- Mensaje de dieta creada con éxito.
+- Aparece la dieta nueva con paciente y fecha.
+reqs:
+- RF-04
+tests: []

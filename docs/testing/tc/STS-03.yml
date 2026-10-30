@@ -1,0 +1,19 @@
+id: STS-03
+level: STS
+module: registro
+name: Registrar un usuario desde la interfaz
+objective: Verificar el alta desde la pantalla de registro.
+pre: El correo nuevo no existe.
+steps:
+- En el inicio de sesión, clic en Registrarse.
+- Capturar correo, contraseña y confirmación válidos.
+- Aceptar el diálogo.
+- Verificar el usuario en MySQL.
+expected:
+- Se abre el formulario de registro.
+- Se envía el registro.
+- Aparece el mensaje de registro completado sin errores.
+- Existe la fila con la contraseña en hash.
+reqs:
+- RF-02
+tests: []

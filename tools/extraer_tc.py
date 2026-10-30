@@ -100,7 +100,9 @@ def main():
             if sum(c['level']==level for c in cases)<10: raise ValueError(f'{level}: faltan TC (mínimo 10)')
         covered={r for c in cases for r in c['reqs']}
         if set(meta['requirements'])-covered: raise ValueError('RF sin cobertura: '+str(set(meta['requirements'])-covered))
-    for file in (base/'tc').glob('*.yml'): file.unlink()
+    # Las fichas sin prueba (tests: []) vienen del Test Plan y se conservan hasta que exista su @TC
+    for file in (base/'tc').glob('*.yml'):
+        if yaml.safe_load(file.read_text(encoding='utf8')).get('tests') or file.stem in ids: file.unlink()
     for c in cases: (base/'tc'/f"{c['id']}.yml").write_text(yaml.safe_dump(c,allow_unicode=True,sort_keys=False),encoding='utf8')
     for file in (base/'defectos').glob('*.yml'): file.unlink()
     for defect in issues(a.repo): (base/'defectos'/f"{defect['id']}.yml").write_text(yaml.safe_dump(defect,allow_unicode=True,sort_keys=False),encoding='utf8')

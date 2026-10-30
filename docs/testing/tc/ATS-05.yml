@@ -1,0 +1,18 @@
+id: ATS-05
+level: ATS
+module: crear-dieta
+name: El sistema informa cuando no existen comidas compatibles con los parámetros
+objective: Verificar que el sistema avise con claridad cuando no puede generar una
+  dieta.
+pre: Dado un paciente y parámetros que ninguna comida del catálogo cumple [CONFIRMAR
+  escenario].
+steps:
+- Cuando captura parámetros sin comidas compatibles (por ejemplo, calorías muy bajas
+  con 6 comidas).
+- Y pulsa crear.
+expected:
+- Entonces el sistema muestra un mensaje que lo explica.
+- Y no se guarda una dieta incompleta ni se cierra la aplicación.
+reqs:
+- RF-04
+tests: []

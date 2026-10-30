@@ -1,0 +1,18 @@
+id: ITS-10
+level: ITS
+module: exportacion
+name: Generar un PDF con los datos recuperados
+objective: Verificar que PDFBuilder genere un archivo válido con los datos de la dieta
+  recuperada desde MySQL.
+pre: Dieta con comentario y 6 días con comidas.
+steps:
+- Recuperar la dieta y su paciente.
+- Generar el PDF en una carpeta temporal.
+- 'Revisar el archivo: tamaño, cabecera %PDF y texto.'
+expected:
+- Datos completos.
+- El archivo se crea sin error.
+- Tamaño mayor que 0, al menos 1 página y contiene el nombre del paciente y el comentario.
+reqs:
+- RF-08
+tests: []

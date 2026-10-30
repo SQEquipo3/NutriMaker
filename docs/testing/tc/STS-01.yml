@@ -1,0 +1,17 @@
+id: STS-01
+level: STS
+module: login
+name: Iniciar sesión desde JavaFX
+objective: Verificar el inicio de sesión desde la interfaz.
+pre: Usuario test1@nutri.com registrado.
+steps:
+- Abrir NutriMaker.
+- Capturar correo y contraseña válidos.
+- Hacer clic en Iniciar Sesión.
+expected:
+- Se muestra la pantalla de inicio de sesión.
+- N/A
+- Se abre el almacenamiento de dietas.
+reqs:
+- RF-01
+tests: []

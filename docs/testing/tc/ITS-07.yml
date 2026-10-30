@@ -1,0 +1,18 @@
+id: ITS-07
+level: ITS
+module: modificar-dieta
+name: Actualizar una dieta existente
+objective: Verificar que el cambio de un alimento persista sin alterar el resto de
+  la dieta.
+pre: Dieta de A con comidas por día.
+steps:
+- Cambiar un alimento de una comida por otro equivalente.
+- Consultar la comida en MySQL.
+- Comparar las demás comidas con las originales.
+expected:
+- Termina sin error.
+- Muestra el alimento nuevo y los valores nutrimentales actualizados.
+- Sin cambios en las demás.
+reqs:
+- RF-06
+tests: []

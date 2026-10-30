@@ -1,0 +1,15 @@
+id: ATS-07
+level: ATS
+module: modificar-dieta
+name: Un usuario puede modificar una dieta existente
+objective: Verificar que el nutriólogo ajuste una dieta ya creada.
+pre: Dado una dieta existente.
+steps:
+- Cuando la abre para editar, cambia un alimento y guarda.
+- Y vuelve a consultarla.
+expected:
+- Entonces ve el aviso de cambios guardados.
+- Y la dieta muestra el alimento nuevo.
+reqs:
+- RF-06
+tests: []

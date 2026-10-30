@@ -1,0 +1,15 @@
+id: ATS-02
+level: ATS
+module: registro
+name: Un usuario nuevo puede crear una cuenta
+objective: Verificar que alguien sin cuenta pueda registrarse y entrar.
+pre: Dado alguien sin cuenta.
+steps:
+- Cuando se registra con un correo y contraseña válidos.
+- Y luego inicia sesión con esa cuenta.
+expected:
+- Entonces ve el mensaje de registro completado.
+- Y accede al almacenamiento de dietas.
+reqs:
+- RF-02
+tests: []

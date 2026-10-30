@@ -1,0 +1,19 @@
+id: STS-04
+level: STS
+module: pacientes
+name: Registrar un paciente desde el formulario
+objective: Verificar la captura de los datos del paciente desde la interfaz.
+pre: Sesión iniciada.
+steps:
+- Clic en Nueva.
+- Capturar nombre, edad, peso y altura válidos.
+- Continuar.
+- Dejar un campo vacío y continuar.
+expected:
+- Se abre el formulario de paciente.
+- N/A
+- Se abre la pantalla de creación de dieta con ese paciente.
+- Mensaje que indica el campo faltante.
+reqs:
+- RF-05
+tests: []

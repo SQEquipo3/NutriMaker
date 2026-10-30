@@ -1,0 +1,15 @@
+id: ATS-08
+level: ATS
+module: eliminar-dieta
+name: Un usuario puede cancelar la eliminación de una dieta
+objective: Verificar que cancelar no borre la dieta.
+pre: Dado una dieta existente.
+steps:
+- Cuando pulsa eliminar.
+- Y cancela en la confirmación.
+expected:
+- Entonces el diálogo se cierra.
+- Y la dieta sigue en la lista.
+reqs:
+- RF-07
+tests: []

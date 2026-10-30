@@ -1,0 +1,17 @@
+id: STS-08
+level: STS
+module: eliminar-dieta
+name: Eliminar una dieta mediante confirmación
+objective: Verificar el borrado con diálogo de confirmación.
+pre: Sesión con al menos 11 dietas.
+steps:
+- Clic en Eliminar.
+- Aceptar la confirmación.
+- Revisar la lista y la paginación.
+expected:
+- Aparece el diálogo de confirmación.
+- La dieta se elimina.
+- Desaparece de la lista y la paginación se actualiza.
+reqs:
+- RF-07
+tests: []

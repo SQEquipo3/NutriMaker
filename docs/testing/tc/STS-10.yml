@@ -1,0 +1,19 @@
+id: STS-10
+level: STS
+module: dietas-almacenadas
+name: Verificar la navegación entre las pantallas de gestión de dietas
+objective: Verificar que se pueda navegar entre las pantallas sin errores ni cierres.
+pre: Sesión iniciada.
+steps:
+- Ir de almacenamiento a formulario de paciente y a creación de dieta.
+- Regresar con los botones de volver.
+- Abrir Edit Diet y regresar.
+- Cerrar sesión.
+expected:
+- Cada pantalla se abre correctamente.
+- Se regresa a la pantalla anterior sin perder datos.
+- Se regresa al almacenamiento.
+- Se vuelve al inicio de sesión.
+reqs:
+- RF-03
+tests: []
