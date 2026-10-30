@@ -18,10 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Pruebas de sistema STS-04, STS-05, STS-06 y STS-10: paciente, generación y listado de dietas desde JavaFX. */
 public class SystemPatientDietTest extends NutriMakerGuiTest {
 
-    private boolean visible(String selector) {
-        return robot.lookup(selector).tryQuery().map(n -> n.isVisible() && n.getScene() != null).orElse(false);
-    }
-
     /** Captura los datos del paciente en el formulario abierto. */
     private void capturarPaciente(String nombre, String edad, String peso, String altura) {
         escribir("#nameTextField", nombre);
