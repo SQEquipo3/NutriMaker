@@ -58,5 +58,14 @@
   },
   "ITS-08::com.javafx.nutrimaker.repository.StoredDietIntegrationTest::ITS_08_eliminarDietaSinHuerfanos": {
     "outcome": "passed"
+  },
+  "STS-07::com.javafx.nutrimaker.SystemDietManagementTest::STS_07_modificarDietaYPersistir": {
+    "outcome": "passed"
+  },
+  "STS-08::com.javafx.nutrimaker.SystemDietManagementTest::STS_08_eliminarDietaConConfirmacion": {
+    "outcome": "passed"
+  },
+  "STS-09::com.javafx.nutrimaker.SystemDietManagementTest::STS_09_exportarPdfConPacienteYMenu": {
+    "outcome": "passed"
   }
 }
