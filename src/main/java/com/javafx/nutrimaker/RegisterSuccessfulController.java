@@ -30,7 +30,7 @@ public class RegisterSuccessfulController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        setFadeAndScaleAnimation(logInButton);
+        setFadeAndScaleAnimation(closeButton);
     }    
 
     @FXML

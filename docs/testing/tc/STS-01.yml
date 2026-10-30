@@ -1,0 +1,17 @@
+id: STS-01
+level: STS
+module: acceso-registro
+name: Verificar que un usuario registrado acceda a almacenamiento de dietas desde
+  JavaFX.
+objective: Verificar que un usuario registrado acceda a almacenamiento de dietas desde
+  JavaFX.
+pre: Base nutrimaker_test disponible y usuario temporal registrado.
+steps:
+- 1.- Abrir LoginForm; 2.- Escribir credenciales válidas; 3.- Pulsar Iniciar Sesión;
+  4.- Verificar pantalla de dietas.
+expected:
+- La ventana muestra Almacenamiento de Dietas y su tabla de dietas.
+reqs:
+- RF-01
+tests:
+- STS-01

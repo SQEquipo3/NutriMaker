@@ -1,0 +1,17 @@
+id: STS-02
+level: STS
+module: acceso-registro
+name: Verificar que credenciales incorrectas muestren una advertencia sin cerrar el
+  login.
+objective: Verificar que credenciales incorrectas muestren una advertencia sin cerrar
+  el login.
+pre: Formulario de acceso abierto y usuario temporal registrado.
+steps:
+- 1.- Introducir correo válido y contraseña errónea; 2.- Pulsar Iniciar Sesión; 3.-
+  Comprobar mensaje y permanencia del formulario.
+expected:
+- Se muestra un diálogo de credenciales incorrectas y el login permanece abierto.
+reqs:
+- RF-01
+tests:
+- STS-02
