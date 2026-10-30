@@ -1,0 +1,17 @@
+id: STS-02
+level: STS
+module: login
+name: Mostrar error al introducir credenciales incorrectas
+objective: Verificar los mensajes y que la aplicación permanezca en el inicio de sesión.
+pre: Usuario test1@nutri.com registrado.
+steps:
+- Iniciar con contraseña incorrecta.
+- Iniciar con un correo no registrado.
+- Iniciar con campos vacíos.
+expected:
+- Mensaje de credenciales incorrectas.
+- Mensaje de credenciales incorrectas.
+- Mensaje que indica el campo vacío.
+reqs:
+- RF-01
+tests: []

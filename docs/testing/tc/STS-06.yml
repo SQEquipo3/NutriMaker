@@ -1,0 +1,17 @@
+id: STS-06
+level: STS
+module: dietas-almacenadas
+name: Visualizar las dietas almacenadas
+objective: Verificar el listado de dietas y la paginación.
+pre: Usuario con 25 dietas.
+steps:
+- Iniciar sesión.
+- Revisar la primera página.
+- Pasar a la página 2 y 3.
+expected:
+- Se abre el almacenamiento.
+- 10 dietas con paciente, peso, altura y fecha.
+- 10 y 5 dietas; los controles se actualizan.
+reqs:
+- RF-03
+tests: []

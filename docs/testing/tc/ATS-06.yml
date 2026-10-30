@@ -1,0 +1,15 @@
+id: ATS-06
+level: ATS
+module: dietas-almacenadas
+name: Un usuario puede consultar sus dietas
+objective: Verificar que el nutriólogo encuentre y revise sus dietas.
+pre: Dado un usuario con varias dietas.
+steps:
+- Cuando inicia sesión y revisa la lista.
+- Y navega entre páginas.
+expected:
+- Entonces ve sus dietas con paciente y fecha.
+- Y no ve las de otros usuarios.
+reqs:
+- RF-03
+tests: []

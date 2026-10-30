@@ -1,0 +1,15 @@
+id: ATS-01
+level: ATS
+module: login
+name: Un usuario registrado puede iniciar sesión
+objective: Verificar desde la perspectiva del usuario que accede con su cuenta.
+pre: Dado un usuario registrado.
+steps:
+- Cuando abre la aplicación e inicia sesión con sus datos.
+- Y revisa la pantalla principal.
+expected:
+- Entonces accede al almacenamiento de dietas.
+- Y ve solo sus dietas.
+reqs:
+- RF-01
+tests: []

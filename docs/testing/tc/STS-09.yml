@@ -1,0 +1,17 @@
+id: STS-09
+level: STS
+module: exportacion
+name: Exportar una dieta a PDF
+objective: Verificar la exportación a PDF desde la interfaz.
+pre: Dieta de 6 comidas por día con comentario.
+steps:
+- Clic en PDF en la fila de la dieta.
+- Esperar la generación.
+- Revisar el archivo.
+expected:
+- Se genera el PDF.
+- Se muestra la vista previa o se abre el visor.
+- Contiene paciente, comentario, nutrimentos y la tabla semanal.
+reqs:
+- RF-08
+tests: []
