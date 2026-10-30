@@ -1,19 +1,21 @@
 id: STS-10
 level: STS
 module: dietas-almacenadas
-name: Verificar la navegación entre las pantallas de gestión de dietas
-objective: Verificar que se pueda navegar entre las pantallas sin errores ni cierres.
-pre: Sesión iniciada.
+name: Verificar que se pueda navegar entre las pantallas de gestión de dietas sin
+  errores ni cierres.
+objective: Verificar que se pueda navegar entre las pantallas de gestión de dietas
+  sin errores ni cierres.
+pre: Sesión iniciada con una dieta generada.
 steps:
-- Ir de almacenamiento a formulario de paciente y a creación de dieta.
-- Regresar con los botones de volver.
-- Abrir Edit Diet y regresar.
-- Cerrar sesión.
+- Ir de almacenamiento a formulario de paciente y a creación de dieta
+- Guardar la dieta para regresar al almacenamiento
+- Abrir Editar dieta y cancelar
+- Abrir Eliminar y cancelar.
 expected:
-- Cada pantalla se abre correctamente.
-- Se regresa a la pantalla anterior sin perder datos.
-- Se regresa al almacenamiento.
-- Se vuelve al inicio de sesión.
+- Cada pantalla se abre en la misma ventana; al guardar se regresa al almacenamiento;
+  los diálogos de edición y eliminación se cierran y regresan al almacenamiento con
+  las dietas intactas.
 reqs:
 - RF-03
-tests: []
+tests:
+- STS-10

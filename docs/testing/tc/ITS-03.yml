@@ -7,11 +7,13 @@ objective: Verificar que no se registren dos usuarios con el mismo correo y que 
   primero no se altere.
 pre: Existe un usuario sembrado con ese correo.
 steps:
-- 1.- Intentar registrar otra vez el mismo correo con otra contraseña; 2.- Contar
-  las filas con ese correo; 3.- Verificar que la contraseña original sigue funcionando
+- Intentar registrar otra vez el mismo correo con otra contraseña
+- Contar las filas con ese correo
+- Verificar que la contraseña original sigue funcionando
 expected:
-- El segundo alta devuelve false sin lanzar excepción; hay una sola fila; solo la
-  contraseña original autentica
+- 'El segundo alta devuelve false sin lanzar excepción; hay una sola fila; solo la
+  contraseña original autentica Comentarios: La restricción UNIQUE (UNIQ_CORREO) de
+  la tabla es la que rechaza el duplicado.'
 reqs:
 - RF-02
 tests:

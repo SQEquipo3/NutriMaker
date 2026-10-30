@@ -5,8 +5,9 @@ name: Verificar que no se intente generar un PDF con datos incompletos.
 objective: Verificar que no se intente generar un PDF con datos incompletos.
 pre: PDFBuilder o su validación accesible desde la prueba.
 steps:
-- 1.- Exportar con dieta nula. 2.- Exportar dieta sin paciente. 3.- Exportar dieta
-  completa.
+- Exportar con dieta nula.
+- Exportar dieta sin paciente.
+- Exportar dieta completa.
 expected:
 - 1 y 2 se rechazan (error controlado); 3 se acepta.
 reqs:

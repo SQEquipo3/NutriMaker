@@ -7,8 +7,10 @@ objective: Verificar que altura y peso solo acepten números positivos dentro de
   rango razonable.
 pre: PatientFormController accesible desde la prueba.
 steps:
-- 1.- Capturar letras y vacío en altura y peso. 2.- Capturar 0 y negativos. 3.- Decimales
-  válidos. 4.- Valores extremos.
+- Capturar letras y vacío en altura y peso.
+- Capturar 0 y negativos.
+- Decimales válidos.
+- Valores extremos.
 expected:
 - 1, 2 y 4 se rechazan; 3 se acepta.
 reqs:

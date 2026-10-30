@@ -1,15 +1,16 @@
 id: ATS-03
 level: ATS
 module: pacientes
-name: Un usuario puede registrar un paciente
+name: Verificar el registro de un paciente por parte del nutriólogo.
 objective: Verificar el registro de un paciente por parte del nutriólogo.
 pre: Dado un usuario con sesión iniciada.
 steps:
-- Cuando captura los datos de un paciente.
-- Y continúa.
+- Cuando pulsa Nueva y captura nombre, edad, peso y altura del paciente
+- Y pulsa Guardar.
 expected:
-- Entonces el sistema acepta los datos.
-- Y continúa con la creación de la dieta de ese paciente.
+- Entonces el sistema acepta los datos y guarda al paciente; y continúa con la creación
+  de la dieta de ese paciente.
 reqs:
 - RF-05
-tests: []
+tests:
+- ATS-03
