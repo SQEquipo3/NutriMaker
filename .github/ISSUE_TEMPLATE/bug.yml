@@ -1,0 +1,37 @@
+# Basada en la plantilla de githubMetrics (templates/github/ISSUE_TEMPLATE/bug.yml).
+# La label "bug" se pone sola: el issue cuenta para Defect Density y, si trae el id del TC,
+# tools/extraer_tc.py lo pone en la hoja «Bug report» con la severidad elegida.
+name: Bug
+description: Algo que debería funcionar y no funciona.
+labels: ["bug"]
+body:
+  - type: input
+    id: caso
+    attributes:
+      label: Caso de prueba que lo detectó
+      description: Id del TC y método de prueba, si salió de una prueba (ej. ITS-05 (`PatientDietIntegrationTest.ITS_05_...`)).
+  - type: input
+    id: funcionalidad
+    attributes:
+      label: Funcionalidad afectada
+      description: Igual que en la matriz de requerimientos (ej. RF-04 Generación automática de dietas).
+  - type: dropdown
+    id: severidad
+    attributes:
+      label: Severidad
+      options: ["1- High", "2- Medium", "3- Low"]
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducirlo
+      placeholder: "1. Entrar a ...\n2. Dar clic en ...\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué se esperaba vs qué pasó
+    validations:
+      required: true
