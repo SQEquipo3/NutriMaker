@@ -1,0 +1,18 @@
+id: ATS-05
+level: ATS
+module: crear-dieta
+name: Verificar que el sistema avise con claridad cuando no puede generar una dieta.
+objective: Verificar que el sistema avise con claridad cuando no puede generar una
+  dieta.
+pre: Dado un usuario con sesión iniciada y un paciente registrado; ninguna combinación
+  del catálogo cumple 300 kcal repartidas en 6 comidas.
+steps:
+- Cuando captura 300 kcal, 6 comidas y un día de descanso
+- Y pulsa Guardar.
+expected:
+- Entonces el sistema muestra un mensaje de que no se pudo crear la dieta; y no guarda
+  una dieta incompleta ni se cierra la aplicación.
+reqs:
+- RF-04
+tests:
+- ATS-05

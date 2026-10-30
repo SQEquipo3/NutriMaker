@@ -7,8 +7,9 @@ objective: Verificar que credenciales incorrectas muestren una advertencia sin c
   el login.
 pre: Formulario de acceso abierto y usuario temporal registrado.
 steps:
-- 1.- Introducir correo válido y contraseña errónea; 2.- Pulsar Iniciar Sesión; 3.-
-  Comprobar mensaje y permanencia del formulario.
+- Introducir correo válido y contraseña errónea
+- Pulsar Iniciar Sesión
+- Comprobar mensaje y permanencia del formulario.
 expected:
 - Se muestra un diálogo de credenciales incorrectas y el login permanece abierto.
 reqs:

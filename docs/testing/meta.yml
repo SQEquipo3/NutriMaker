@@ -7,15 +7,19 @@ milestone: Entrega SWQA - Test Plan
 department: QA - Equipo 3
 
 testers:
-  - Tester 1
-  - Tester 2
+  - Laura
+  - Eric
 
 planned_date: "2026-10-31"
 
 environment: >
-  Java, JavaFX, Maven, JUnit 5, Mockito,
-  TestFX, MySQL, JaCoCo y GitHub Actions.
-  Pruebas de interfaz con entorno gráfico virtual en CI.
+  Windows 10/11 o Ubuntu (GitHub Actions, ubuntu-latest); Java 23+, Maven, JUnit 5, Mockito,
+  TestFX, Surefire y JaCoCo. Base nutrimaker_test separada de la de desarrollo, cargada desde
+  NutrimakerDB/nutrimaker.sql (MariaDB/MySQL). Pruebas de interfaz con Xvfb en CI.
+
+references: >
+  P3 - Especificación de Requerimientos (NutriMaker v1.0); NutriMaker SW Test Plan v2.0
+  (requisitos funcionales RF-01 a RF-08); src/test/java en el repositorio
 
 requirements:
   - RF-01

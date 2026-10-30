@@ -7,11 +7,13 @@ objective: Verificar que un usuario guardado en la base pueda autenticarse y que
   credenciales incorrectas se rechacen.
 pre: Usuario sembrado en nutrimaker_test con su contraseña en hash BCrypt.
 steps:
-- 1.- Verificar la contraseña correcta del usuario; 2.- Verificar una contraseña incorrecta;
-  3.- Verificar un correo inexistente
+- Verificar la contraseña correcta del usuario
+- Verificar una contraseña incorrecta
+- Verificar un correo inexistente
 expected:
-- La contraseña correcta devuelve true; la incorrecta y el correo inexistente devuelven
-  false sin lanzar excepción
+- 'La contraseña correcta devuelve true; la incorrecta y el correo inexistente devuelven
+  false sin lanzar excepción Comentarios: No verifica AES-128 ni TLS 1.2 (parte del
+  RF-01); el código usa BCrypt.'
 reqs:
 - RF-01
 tests:

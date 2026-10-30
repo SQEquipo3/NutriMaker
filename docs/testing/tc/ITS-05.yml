@@ -4,11 +4,17 @@ module: crear-dieta
 name: Verificar que RF-04 genera y guarda una dieta completa para el paciente correcto.
 objective: Verificar que RF-04 genera y guarda una dieta completa para el paciente
   correcto.
-pre: Base nutrimaker_test con recetas fuente suficientes para seis días,
+pre: Base nutrimaker_test con recetas fuente suficientes para seis días, y permisos
+  de INSERT/SELECT/DELETE sobre USUARIO, PACIENTE, DIETA y COMIDA.
 steps:
-- 1.- Registrar usuario y dos pacientes; 2.- Generar para el primer paciente
+- Registrar usuario y dos pacientes
+- Generar para el primer paciente una dieta de 2000 kcal, tres comidas y domingo de
+  descanso
+- Consultar MySQL
+- Verificar asociación, seis días activos, domingo vacío, calorías y variedad.
 expected:
-- La dieta pertenece al paciente elegido, no al último creado;
+- La dieta pertenece al paciente elegido, no al último creado; tiene 18 comidas, ninguna
+  el domingo y totales diarios dentro de +/-10%.
 reqs:
 - RF-04
 tests:

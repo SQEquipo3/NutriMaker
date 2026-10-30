@@ -1,0 +1,17 @@
+id: ATS-04
+level: ATS
+module: crear-dieta
+name: Verificar que el nutriólogo obtenga una dieta completa con sus parámetros.
+objective: Verificar que el nutriólogo obtenga una dieta completa con sus parámetros.
+pre: Dado un usuario con sesión iniciada y un paciente registrado.
+steps:
+- Cuando captura 2000 kcal, 4 comidas y el miércoles de descanso, y crea la dieta
+- Y la consulta en su lista.
+expected:
+- Entonces recibe el aviso de dieta creada; y la dieta aparece en su lista con 4 comidas
+  en cada uno de los 6 días activos, el miércoles vacío y cada día dentro de 2000
+  kcal +/-10%.
+reqs:
+- RF-04
+tests:
+- ATS-04

@@ -1,0 +1,16 @@
+id: ATS-02
+level: ATS
+module: registro
+name: Verificar que alguien sin cuenta pueda registrarse y entrar.
+objective: Verificar que alguien sin cuenta pueda registrarse y entrar.
+pre: Dado alguien sin cuenta en nutrimaker_test.
+steps:
+- Cuando pulsa Registrarse y captura un correo y una contraseña válidos con su confirmación
+- Y luego regresa a Iniciar sesión y entra con esa cuenta.
+expected:
+- Entonces ve el mensaje de registro completado; y accede al almacenamiento de dietas,
+  vacío.
+reqs:
+- RF-02
+tests:
+- ATS-02

@@ -8,7 +8,9 @@ objective: Verificar que el inicio de sesión detecte cuando falta el correo, la
 pre: LoginController accesible desde la prueba, con los campos de correo y contraseña
   simulados.
 steps:
-- 1.- Correo vacío con contraseña; 2.- Correo con contraseña vacía; 3.- Ambos vacíos
+- Correo vacío con contraseña
+- Correo con contraseña vacía
+- Ambos vacíos
 expected:
 - El método isEmpty devuelve true en los tres casos y evita consultas a la BD.
 reqs:

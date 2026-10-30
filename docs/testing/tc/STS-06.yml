@@ -1,0 +1,19 @@
+id: STS-06
+level: STS
+module: dietas-almacenadas
+name: Verificar el listado de dietas y la paginación.
+objective: Verificar el listado de dietas y la paginación.
+pre: Usuario con 25 dietas en nutrimaker_test.
+steps:
+- Iniciar sesión
+- Revisar la primera página
+- Pasar a las páginas 2 y 3
+- Regresar a la página 2.
+expected:
+- Se abre el almacenamiento con 10 dietas con paciente, peso, altura y fecha; las
+  páginas 2 y 3 muestran 10 y 5 dietas sin repetirse; los botones de anterior y siguiente
+  se muestran solo cuando aplican.
+reqs:
+- RF-03
+tests:
+- STS-06

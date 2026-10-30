@@ -1,0 +1,16 @@
+id: ATS-10
+level: ATS
+module: exportacion
+name: Verificar que el nutriólogo obtenga el PDF de una dieta para entregarlo.
+objective: Verificar que el nutriólogo obtenga el PDF de una dieta para entregarlo.
+pre: Dado un usuario con una dieta generada con comentario; carpeta Documents disponible.
+steps:
+- Cuando pulsa PDF en la dieta
+- Y abre el archivo generado.
+expected:
+- Entonces se genera el PDF; y contiene los datos del paciente, el comentario, el
+  menú semanal y los nutrimentos.
+reqs:
+- RF-08
+tests:
+- ATS-10

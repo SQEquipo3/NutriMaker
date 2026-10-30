@@ -1,0 +1,19 @@
+id: STS-04
+level: STS
+module: pacientes
+name: Verificar la captura de los datos del paciente desde la interfaz.
+objective: Verificar la captura de los datos del paciente desde la interfaz.
+pre: Sesión iniciada con un usuario de nutrimaker_test.
+steps:
+- Pulsar Nueva en el almacenamiento
+- Pulsar Guardar con la altura vacía
+- Capturar letras en la edad y guardar
+- Capturar nombre, edad, peso y altura válidos y guardar.
+expected:
+- Se abre el formulario de paciente; los datos incompletos o con letras muestran su
+  aviso y no se guardan; con datos válidos se abre la creación de dieta y el paciente
+  queda registrado en MySQL.
+reqs:
+- RF-05
+tests:
+- STS-04

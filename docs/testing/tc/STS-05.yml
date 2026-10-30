@@ -1,0 +1,18 @@
+id: STS-05
+level: STS
+module: crear-dieta
+name: Verificar la generación de una dieta desde la pantalla de creación.
+objective: Verificar la generación de una dieta desde la pantalla de creación.
+pre: Sesión iniciada y un paciente capturado en el formulario.
+steps:
+- Capturar 2000 kcal, 3 comidas, descanso el domingo y un comentario
+- Pulsar Guardar
+- Esperar el mensaje de resultado
+- Revisar el almacenamiento de dietas.
+expected:
+- Aparece el aviso de dieta creada con éxito; el almacenamiento muestra la dieta nueva
+  con el paciente y la fecha de hoy; en MySQL tiene 18 comidas y ninguna el domingo.
+reqs:
+- RF-04
+tests:
+- STS-05

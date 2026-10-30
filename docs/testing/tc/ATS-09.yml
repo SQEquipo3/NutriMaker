@@ -1,0 +1,16 @@
+id: ATS-09
+level: ATS
+module: eliminar-dieta
+name: Verificar que confirmar elimine la dieta.
+objective: Verificar que confirmar elimine la dieta.
+pre: Dado un usuario con dos dietas generadas.
+steps:
+- Cuando pulsa eliminar en una dieta
+- Y pulsa Aceptar en la confirmación.
+expected:
+- Entonces la dieta desaparece de la lista; y ya no existe en la base de datos ni
+  sus comidas; la otra dieta permanece.
+reqs:
+- RF-07
+tests:
+- ATS-09

@@ -7,8 +7,10 @@ objective: Verificar que un usuario registrado acceda a almacenamiento de dietas
   JavaFX.
 pre: Base nutrimaker_test disponible y usuario temporal registrado.
 steps:
-- 1.- Abrir LoginForm; 2.- Escribir credenciales válidas; 3.- Pulsar Iniciar Sesión;
-  4.- Verificar pantalla de dietas.
+- Abrir LoginForm
+- Escribir credenciales válidas
+- Pulsar Iniciar Sesión
+- Verificar pantalla de dietas.
 expected:
 - La ventana muestra Almacenamiento de Dietas y su tabla de dietas.
 reqs:

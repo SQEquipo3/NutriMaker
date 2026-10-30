@@ -7,8 +7,9 @@ objective: Verificar que el alta guarde el usuario en MySQL y que la contraseña
   quede en texto plano.
 pre: La tabla USUARIO no contiene el correo nuevo.
 steps:
-- 1.- Registrar un correo nuevo con la contraseña Abc12345; 2.- Consultar la fila
-  con SELECT; 3.- Comparar la contraseña guardada con el texto plano
+- Registrar un correo nuevo con la contraseña Abc12345
+- Consultar la fila con SELECT
+- Comparar la contraseña guardada con el texto plano
 expected:
 - El alta devuelve true; existe una fila con ese correo; la contraseña guardada es
   un hash BCrypt distinto del texto plano

@@ -1,0 +1,16 @@
+id: ATS-06
+level: ATS
+module: dietas-almacenadas
+name: Verificar que el nutriólogo encuentre y revise sus dietas.
+objective: Verificar que el nutriólogo encuentre y revise sus dietas.
+pre: Dado un usuario con 12 dietas y otro usuario con 5.
+steps:
+- Cuando inicia sesión y revisa la lista
+- Y navega a la siguiente página.
+expected:
+- Entonces ve 10 dietas con paciente y fecha y luego las 2 restantes; y nunca ve las
+  del otro usuario.
+reqs:
+- RF-03
+tests:
+- ATS-06

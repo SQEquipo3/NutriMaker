@@ -6,7 +6,7 @@ objective: Verificar los límites de longitud de la contraseña del registro (8 
   caracteres).
 pre: SignUpFormController accesible desde la prueba.
 steps:
-- 1.- Validar contraseñas de 7, 8, 16 y 17 caracteres
+- Validar contraseñas de 7, 8, 16 y 17 caracteres
 expected:
 - Las de 8 y 16 caracteres devuelven true; las de 7 y 17 devuelven false
 reqs:

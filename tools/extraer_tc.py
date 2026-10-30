@@ -27,12 +27,15 @@ def catalogo():
             id_ = attrs.get('id', '')
             if not re.fullmatch(r'(UTS|ITS|STS|ATS)-\d{2,}', id_):
                 raise ValueError(f'{file}: @TC sin ID válido: {id_}')
-            tags = dict(re.findall(r'@(objetivo|precondicion|pasos|esperado)\s+([^\n\r]+)', doc))
+            # Cada etiqueta llega hasta la siguiente; puede ocupar varias líneas del Javadoc
+            tags = dict(re.findall(r'@(objetivo|precondicion|pasos|esperado)\s+(.*?)(?=@(?:objetivo|precondicion|pasos|esperado)\b|\Z)', doc, re.S))
             def clean(s): return re.sub(r'\s+', ' ', s.replace('*','')).strip()
+            # "1.- A; 2.- B" -> ["A", "B"]: el generador vuelve a numerar cada paso
+            steps = [p.strip(' ;') for p in re.split(r'\d+\.-\s*', clean(tags.get('pasos','Ejecutar prueba JUnit'))) if p.strip(' ;')]
             case = {'id':id_, 'level':id_.split('-')[0], 'module':attrs.get('modulo','general'),
                     'name':clean(tags.get('objetivo',id_)), 'objective':clean(tags.get('objetivo',id_)),
                     'pre':clean(tags.get('precondicion','Preparar entorno de prueba')),
-                    'steps':[clean(tags.get('pasos','Ejecutar prueba JUnit'))],
+                    'steps':steps,
                     'expected':[clean(tags.get('esperado','Aserciones satisfactorias'))],
                     'reqs':[x.strip() for x in attrs.get('rf','').split(',') if x.strip()],
                     'tests':[id_]}
@@ -100,7 +103,9 @@ def main():
             if sum(c['level']==level for c in cases)<10: raise ValueError(f'{level}: faltan TC (mínimo 10)')
         covered={r for c in cases for r in c['reqs']}
         if set(meta['requirements'])-covered: raise ValueError('RF sin cobertura: '+str(set(meta['requirements'])-covered))
-    for file in (base/'tc').glob('*.yml'): file.unlink()
+    # Las fichas sin prueba (tests: []) vienen del Test Plan y se conservan hasta que exista su @TC
+    for file in (base/'tc').glob('*.yml'):
+        if yaml.safe_load(file.read_text(encoding='utf8')).get('tests') or file.stem in ids: file.unlink()
     for c in cases: (base/'tc'/f"{c['id']}.yml").write_text(yaml.safe_dump(c,allow_unicode=True,sort_keys=False),encoding='utf8')
     for file in (base/'defectos').glob('*.yml'): file.unlink()
     for defect in issues(a.repo): (base/'defectos'/f"{defect['id']}.yml").write_text(yaml.safe_dump(defect,allow_unicode=True,sort_keys=False),encoding='utf8')

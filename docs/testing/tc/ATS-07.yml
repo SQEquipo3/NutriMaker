@@ -1,0 +1,16 @@
+id: ATS-07
+level: ATS
+module: modificar-dieta
+name: Verificar que el nutriólogo ajuste una dieta ya creada.
+objective: Verificar que el nutriólogo ajuste una dieta ya creada.
+pre: Dado un usuario con una dieta generada.
+steps:
+- Cuando la abre para editar, cambia el comentario y las calorías y guarda
+- Y vuelve a abrirla para consultarla.
+expected:
+- Entonces el sistema le notifica que los cambios se guardaron y regresa al almacenamiento;
+  y la dieta muestra el comentario y las calorías nuevos.
+reqs:
+- RF-06
+tests:
+- ATS-07

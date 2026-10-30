@@ -1,0 +1,19 @@
+id: STS-07
+level: STS
+module: modificar-dieta
+name: Modificar una dieta desde Edit Diet
+objective: Verificar la edición de una dieta desde su pantalla.
+pre: Una dieta existente.
+steps:
+- Abrir la dieta en Edit Diet.
+- Cambiar un alimento.
+- Guardar.
+- Volver a abrir la dieta.
+expected:
+- Se muestra la dieta con sus comidas.
+- El alimento se actualiza en pantalla.
+- Mensaje de cambios guardados.
+- El cambio persiste.
+reqs:
+- RF-06
+tests: []

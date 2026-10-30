@@ -7,7 +7,10 @@ objective: Verificar que el listado y el conteo de dietas se filtren por usuario
   respeten la paginación.
 pre: MySQL de XAMPP activo; nutrimaker_test disponible y aislada.
 steps:
-- 1.- Crear dos usuarios y sus pacientes; 2.- Crear 25 dietas de A y 2 de B;
+- Crear dos usuarios y sus pacientes
+- Crear 25 dietas de A y 2 de B
+- Consultar conteos y páginas de A con límite 10
+- Comprobar que B solo ve sus dos dietas.
 expected:
 - A obtiene 25 dietas distribuidas 10, 10 y 5; B obtiene solo 2, sin dietas ajenas.
 reqs:

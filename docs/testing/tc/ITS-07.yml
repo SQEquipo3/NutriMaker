@@ -1,0 +1,22 @@
+id: ITS-07
+level: ITS
+module: modificar-dieta
+name: Verificar que la modificación de una dieta persista en MySQL sin alterar las
+  comidas que no cambian.
+objective: Verificar que la modificación de una dieta persista en MySQL sin alterar
+  las comidas que no cambian.
+pre: nutrimaker_test con catálogo de recetas; dieta generada de 3 comidas con descanso
+  el domingo.
+steps:
+- Cambiar comentario, calorías y día de descanso (domingo a sábado) con updateDietForUser
+- Consultar la dieta y sus comidas en MySQL
+- Comparar las comidas con las originales
+- Intentar editarla con otro usuario y cambiar la cantidad de comidas.
+expected:
+- Los cambios persisten; las comidas del sábado pasan al domingo y las demás quedan
+  idénticas; otro usuario y el cambio de cantidad de comidas se rechazan sin modificar
+  nada.
+reqs:
+- RF-06
+tests:
+- ITS-07
