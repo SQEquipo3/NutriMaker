@@ -2,7 +2,7 @@
 """Convierte @TC + Javadoc, Surefire, JaCoCo e issues bug al formato interno del generador.
 
 Formato de anotación previsto: @TC(id="UTS-01", rf="RF-01", modulo="login")
-Javadoc: @objetivo, @precondicion, @pasos, @esperado (una línea o líneas sucesivas).
+Javadoc: @objetivo, @precondicion, @pasos ("1.- A; 2.- B"), @esperado y @nota opcional (sale en Comments).
 Los casos sin pruebas no se inventan: el validador informará qué falta.
 """
 import argparse
@@ -29,7 +29,7 @@ def catalogo():
             if not re.fullmatch(r'(UTS|ITS|STS|ATS)-\d{2,}', id_):
                 raise ValueError(f'{file}: @TC sin ID válido: {id_}')
             # Cada etiqueta llega hasta la siguiente; puede ocupar varias líneas del Javadoc
-            tags = dict(re.findall(r'@(objetivo|precondicion|pasos|esperado)\s+(.*?)(?=@(?:objetivo|precondicion|pasos|esperado)\b|\Z)', doc, re.S))
+            tags = dict(re.findall(r'@(objetivo|precondicion|pasos|esperado|nota)\s+(.*?)(?=@(?:objetivo|precondicion|pasos|esperado|nota)\b|\Z)', doc, re.S))
             def clean(s): return re.sub(r'\s+', ' ', s.replace('*','')).strip()
             # "1.- A; 2.- B" -> ["A", "B"]: el generador vuelve a numerar cada paso
             steps = [p.strip(' ;') for p in re.split(r'\d+\.-\s*', clean(tags.get('pasos','Ejecutar prueba JUnit'))) if p.strip(' ;')]
@@ -38,6 +38,7 @@ def catalogo():
                     'pre':clean(tags.get('precondicion','Preparar entorno de prueba')),
                     'steps':steps,
                     'expected':[clean(tags.get('esperado','Aserciones satisfactorias'))],
+                    'comments':clean(tags.get('nota','')),
                     'reqs':[x.strip() for x in attrs.get('rf','').split(',') if x.strip()],
                     'tests':[id_]}
             if not case['reqs']: raise ValueError(f'{file}: {id_} sin RF')
@@ -77,8 +78,11 @@ def jacoco(path):
 
 def issues(repo):
     if not repo: return []
-    proc=subprocess.run(['gh','issue','list','--repo',repo,'--label','bug','--state','all','--limit','500','--json','number,title,body,state,assignees'],capture_output=True,text=True)
+    proc=subprocess.run(['gh','issue','list','--repo',repo,'--label','bug','--state','all','--limit','500','--json','number,title,body,state,author,assignees'],capture_output=True,text=True)
     if proc.returncode: raise RuntimeError('No se pudieron consultar issues bug: '+proc.stderr)
+    # Found by = quien abrió el issue; nombres reales desde meta.yml (usuario de GitHub -> nombre)
+    nombres=(yaml.safe_load(META.read_text(encoding='utf8')) or {}).get('nombres') or {}
+    nombre=lambda login: nombres.get(login, login)
     out=[]
     for issue in json.loads(proc.stdout):
         body=issue.get('body') or ''
@@ -88,7 +92,8 @@ def issues(repo):
         out.append({'id':f"GH-{issue['number']}",'tc':match.group(), 'description':issue['title'],
                     'steps':body[:2000], 'severity':sev.group(1) if sev else '3- Low',
                     'state':'Closed' if issue['state']=='CLOSED' else 'Open',
-                    'found_by':'GitHub', 'assigned_to':', '.join(a['login'] for a in issue.get('assignees',[]))})
+                    'found_by':nombre(issue['author']['login']),
+                    'assigned_to':', '.join(nombre(a['login']) for a in issue.get('assignees',[])) or 'Sin asignar'})
     return out
 
 def main():

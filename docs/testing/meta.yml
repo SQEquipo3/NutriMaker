@@ -2,7 +2,7 @@ team: Team03
 project: NutriMaker
 project_title: NutriMaker
 
-release: "7.0"
+release: "1.0"
 milestone: Entrega SWQA - Test Plan
 department: QA - Equipo 3
 
@@ -42,3 +42,7 @@ owners: {}
 personas:
   A: Lalmao
   B: Stredhy
+
+# Nombre real de cada usuario de GitHub, para «Found by» y «Assigned to» del Bug report.
+nombres:
+  Kasinfire: Kelly Arellano
