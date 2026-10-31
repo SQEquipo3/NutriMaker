@@ -73,6 +73,12 @@ def evaluar(cat, results, fecha_ejec):
             c["date"] = dt.date.fromisoformat(meta["planned_date"])
         c["n_tests"] = len(hits)
         c["defect"] = next((d for d in defectos.values() if d["tc"] == c["id"]), None)
+    # Un bug abierto por alguien fuera del equipo lo reporta quien ejecuta su TC (el tester de Detailed status)
+    equipo = set((meta.get("nombres") or {}).values())
+    tester_de = {c["id"]: c["tester"] for c in cat["cases"]}
+    for d in cat.get("defects", []):
+        if d["found_by"] not in equipo and d["tc"] in tester_de:
+            d["found_by"] = tester_de[d["tc"]]
     return cat
 
 

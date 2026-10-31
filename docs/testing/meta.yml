@@ -44,7 +44,7 @@ personas:
   B: Stredhy
 
 # Nombre real de cada integrante (usuario de GitHub -> nombre), para «Found by» y «Assigned to» del Bug report.
-# Quien no está aquí no es del equipo: su issue sale como «Found by: <department>» y no se lista como asignado.
+# Quien no está aquí no es del equipo: en «Found by» sale el tester de su TC y no se lista como asignado.
 nombres:
   Lalmao: Laura
   Stredhy: Eric
