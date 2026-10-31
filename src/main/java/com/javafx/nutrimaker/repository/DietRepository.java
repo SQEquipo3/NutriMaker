@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 
 import static com.javafx.nutrimaker.database.DatabaseClient.*;
@@ -192,7 +191,8 @@ public class DietRepository {
             Object value = entry.getValue();
             if ("FECHA_CREACION".equals(column) && value instanceof String date) {
                 try {
-                    value = LocalDateTime.ofInstant(Instant.parse(date), ZoneOffset.UTC);
+                    // FECHA_CREACION guarda la hora local; con UTC, de noche quedaba con fecha de mañana.
+                    value = LocalDateTime.ofInstant(Instant.parse(date), ZoneId.systemDefault());
                 } catch (RuntimeException ex) {
                     // Permite también fechas SQL ya serializadas como yyyy-MM-dd HH:mm:ss.
                     value = LocalDateTime.parse(date.replace(' ', 'T'));
