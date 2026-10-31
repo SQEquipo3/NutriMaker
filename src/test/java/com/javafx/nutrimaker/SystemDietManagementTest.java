@@ -41,7 +41,10 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
     /**
      * @objetivo Verificar la edición de una dieta desde la interfaz y la persistencia de los cambios.
      * @precondicion Usuario de prueba con 11 dietas existentes.
-     * @pasos Abrir edición de la primera dieta, modificar calorías y comentario, guardar y consultar MySQL.
+     * @pasos 1.- En la tabla de dietas pulsar Editar en la primera fila;
+     * 2.- Cambiar las calorías a 2100 y escribir un comentario nuevo;
+     * 3.- Pulsar Guardar y esperar a que se cierre el editor;
+     * 4.- Consultar en MySQL la fila de DIETA con ese id.
      * @esperado Los valores nuevos persisten y el diálogo de edición se cierra.
      */
     @Test
@@ -66,7 +69,10 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
     /**
      * @objetivo Validar eliminación con confirmación desde la tabla de dietas.
      * @precondicion Usuario de prueba con 11 dietas existentes.
-     * @pasos Abrir la acción Eliminar, confirmar y comprobar la lista y MySQL.
+     * @pasos 1.- En la tabla de dietas pulsar Eliminar en la primera fila;
+     * 2.- Pulsar Aceptar en el diálogo de confirmación;
+     * 3.- Consultar en MySQL la fila de DIETA con ese id;
+     * 4.- Revisar que la dieta ya no aparezca en la tabla.
      * @esperado La dieta desaparece de la tabla y de la base de datos.
      */
     @Test
@@ -88,7 +94,10 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
     /**
      * @objetivo Exportar desde la interfaz una dieta completa y comprobar el contenido del PDF.
      * @precondicion Usuario con 11 dietas y una dieta generada con menú; carpeta Documents disponible.
-     * @pasos Pulsar PDF, esperar el archivo y extraer el texto de sus páginas.
+     * @pasos 1.- Iniciar sesión y ubicar la dieta en la tabla (página 1 o 2);
+     * 2.- Pulsar el botón PDF de esa fila;
+     * 3.- Esperar a que se cree Documents/diet.pdf;
+     * 4.- Extraer el texto de sus páginas.
      * @esperado El PDF contiene nombre del paciente, comentario y al menos una comida.
      * @nota La inspección visual del formato puede registrarse adicionalmente como evidencia manual.
      */

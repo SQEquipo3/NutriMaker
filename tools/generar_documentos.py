@@ -73,6 +73,12 @@ def evaluar(cat, results, fecha_ejec):
             c["date"] = dt.date.fromisoformat(meta["planned_date"])
         c["n_tests"] = len(hits)
         c["defect"] = next((d for d in defectos.values() if d["tc"] == c["id"]), None)
+    # Un bug abierto por alguien fuera del equipo lo reporta quien ejecuta su TC (el tester de Detailed status)
+    equipo = set((meta.get("nombres") or {}).values())
+    tester_de = {c["id"]: c["tester"] for c in cat["cases"]}
+    for d in cat.get("defects", []):
+        if d["found_by"] not in equipo and d["tc"] in tester_de:
+            d["found_by"] = tester_de[d["tc"]]
     return cat
 
 
@@ -112,10 +118,13 @@ def conteos(cat):
 
 # --------------------------------------------------------------------------- gráficas
 PAL = {"PASSED": "#2E7D32", "FAILED": "#C62828", "BLOCKED": "#EF6C00", "NOT_EXECUTED": "#9E9E9E"}
-MODCOL = ["#1F4E79", "#2E86AB", "#F6AE2D", "#8E6C8A", "#5C8A4D", "#B5543C"]
+# Un color por módulo: NutriMaker tiene 10 y zip() descartaba los que no tenían color
+MODCOL = ["#1F4E79", "#2E86AB", "#F6AE2D", "#8E6C8A", "#5C8A4D", "#B5543C",
+          "#4F6D7A", "#E07A5F", "#81B29A", "#C9A227", "#6D597A", "#3D405B"]
 
 
-def graficas(cat, k, cov, outdir: Path):
+def graficas(k, outdir: Path):
+    """Diagramas del Test Report: casos de prueba por estado y por módulo (los que pidió el maestro)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -134,7 +143,7 @@ def graficas(cat, k, cov, outdir: Path):
         ax.set_title(title, fontsize=11, loc="left", fontweight="bold")
         fig.tight_layout()
         p = outdir / f"{name}.png"
-        fig.savefig(p)
+        fig.savefig(p, bbox_inches="tight")   # que la leyenda no se corte con nombres largos
         plt.close(fig)
         pngs[name] = p
 
@@ -142,43 +151,8 @@ def graficas(cat, k, cov, outdir: Path):
     pie("pie_total_tc", "Casos de prueba por estado (total)", list(etiq.values()),
         [k["status"][s] for s in etiq], [PAL[s] for s in etiq])
     mods = list(k["por_modulo"])
-    pie("pie_tc_modulo", "Casos de prueba por módulo", mods, [k["por_modulo"][m] for m in mods], MODCOL)
-    tm = list(k["tests_modulo"])
-    pie("pie_JUnit_modulo", "Pruebas JUnit ejecutadas por módulo", tm, [k["tests_modulo"][m] for m in tm], MODCOL)
-    niveles = cat["meta"]["levels"]
-    pie("pie_tc_nivel", "Casos de prueba por nivel", list(niveles.values()),
-        [sum(c["level"] == l for c in cat["cases"]) for l in niveles], MODCOL)
-    # barras apiladas por módulo y estado
-    fig, ax = plt.subplots(figsize=(6.4, 3.6), dpi=130)
-    bottom = [0] * len(mods)
-    for s in etiq:
-        vals = [sum(1 for c in cat["cases"] if c["module"] == m and c["status"] == s) for m in mods]
-        ax.bar(mods, vals, bottom=bottom, color=PAL[s], label=etiq[s], edgecolor="white")
-        bottom = [a + b for a, b in zip(bottom, vals)]
-    ax.set_title("Estado de los casos de prueba por módulo", fontsize=11, loc="left", fontweight="bold")
-    ax.legend(frameon=False, fontsize=8, ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.12))
-    ax.spines[["top", "right"]].set_visible(False)
-    fig.tight_layout()
-    p = outdir / "bar_estado_modulo.png"
-    fig.savefig(p)
-    plt.close(fig)
-    pngs["bar_estado_modulo"] = p
-    if cov:
-        files = sorted(((f.replace("", ""), d["summary"]["percent_covered"]) for f, d in cov["files"].items()),
-                       key=lambda x: x[1])
-        fig, ax = plt.subplots(figsize=(6.4, max(3, 0.28 * len(files) + 1)), dpi=130)
-        ax.barh([f for f, _ in files], [v for _, v in files], color="#1F4E79")
-        ax.axvline(cov["totals"]["percent_covered"], color="#C62828", ls="--", lw=1)
-        ax.set_xlim(0, 100)
-        ax.set_title(f"Cobertura de líneas por archivo (total {cov['totals']['percent_covered']:.1f}%)",
-                     fontsize=11, loc="left", fontweight="bold")
-        ax.tick_params(axis="y", labelsize=7)
-        ax.spines[["top", "right"]].set_visible(False)
-        fig.tight_layout()
-        p = outdir / "bar_cobertura.png"
-        fig.savefig(p)
-        plt.close(fig)
-        pngs["bar_cobertura"] = p
+    pie("pie_tc_modulo", "Casos de prueba por módulo", mods, [k["por_modulo"][m] for m in mods],
+        [MODCOL[i % len(MODCOL)] for i in range(len(mods))])
     return pngs
 
 # --------------------------------------------------------------------------- utilidades Excel
@@ -260,7 +234,7 @@ def construir_plan(cat, k, fecha, out: Path, tpl: Path):
     wi["B6"].value = f"Proyecto: {meta['project_title']} (versión {meta['release']})"
     # ---- Matrix
     wm = wb["Matrix"]
-    wm["C1"].value = "SDD.md, SAD.md, tests/"
+    wm["C1"].value = "P3 - Especificación de Requerimientos (NutriMaker v1.0); src/test/java (@TC + Javadoc)"
     wm["C2"].value = f"{meta['release']} — Test Plan v1.0 ({fecha.isoformat()})"
     for rng in list(wm.merged_cells.ranges):
         if str(rng) == "B8:G8":
@@ -279,10 +253,11 @@ def construir_plan(cat, k, fecha, out: Path, tpl: Path):
         wm.row_dimensions[r].height = 30
         c["matrix_row"] = r
         wm[f"B{r}"] = c["id"]
-        wm[f"C{r}"] = f"={c['id']}!$B$4"
+        hoja = f"'{c['id']}'"          # comillas: el guion de UTS-01 haría que Excel lo lea como una resta
+        wm[f"C{r}"] = f"={hoja}!$B$4"
         wm[f"D{r}"] = c["method"]
         wm[f"E{r}"] = "X"
-        wm[f"F{r}"] = f'=IF({c["id"]}!$D$5="Complete",{c["id"]}!$D$17,{c["id"]}!$D$5)'
+        wm[f"F{r}"] = f'=IF({hoja}!$D$5="Complete",{hoja}!$D$17,{hoja}!$D$5)'
         nota = []
         if c.get("defect"):
             nota.append(c["defect"]["id"])
@@ -427,7 +402,7 @@ def construir_reporte(cat, k, cov, fecha, pngs, out: Path, tpl: Path):
         s[ref].alignment = Alignment(horizontal="left")
     s["F19"].value = None
     s["D9"], s["D10"], s["D11"] = k["total"], k["planned"], k["executed"]
-    s["E10"].value = ("Los TC manuales pendientes y los bloqueados por brechas del SDD no cuentan como ejecutados "
+    s["E10"].value = ("Los TC manuales pendientes y los bloqueados por un defecto no cuentan como ejecutados "
                       f"({k['planned'] - k['executed']} sin ejecutar).")
     pctfmt = s["D15"].number_format
     estilo_c, estilo_d = copy.copy(s["C12"]._style), copy.copy(s["D12"]._style)
@@ -442,11 +417,7 @@ def construir_reporte(cat, k, cov, fecha, pngs, out: Path, tpl: Path):
         s[f"C{r}"]._style, s[f"D{r}"]._style = copy.copy(estilo_c), copy.copy(estilo_d)
         r += 1
     filas = [("Pass Percentage of the defects (TC passed / executed)", k["pass_pct"], estilo_pct_c, estilo_pct_d, pctfmt),
-             ("Number of critical defects (High, abiertos)", k["critical"], estilo_crit_c, estilo_crit_d, "General"),
-             ("Total JUnit tests executed (passed / known-defect xfail / failed)",
-              f"{k['n_tests']} ({k['tests_res']['passed']} / {k['tests_res']['known_defect']} / {k['tests_res']['failed']})", estilo_crit_c, estilo_crit_d, "General")]
-    if cov:
-        filas.append(("Code coverage (line, JUnit-cov)", cov["totals"]["percent_covered"] / 100, estilo_pct_c, estilo_pct_d, "0.0%"))
+             ("Number of critical defects (High, abiertos)", k["critical"], estilo_crit_c, estilo_crit_d, "General")]
     for t, v, sc, sd, nf in filas:
         s[f"C{r}"], s[f"D{r}"] = t, v
         s[f"C{r}"]._style, s[f"D{r}"]._style = copy.copy(sc), copy.copy(sd)
@@ -458,8 +429,7 @@ def construir_reporte(cat, k, cov, fecha, pngs, out: Path, tpl: Path):
     fila_img = r + 2
     s[f"B{fila_img - 1}"] = "Diagramas"
     s[f"B{fila_img - 1}"].font = Font(bold=True, size=12, color="1F4E79")
-    orden = [("pie_total_tc", "B", 0), ("pie_tc_modulo", "E", 0), ("pie_JUnit_modulo", "B", 1), ("pie_tc_nivel", "E", 1),
-             ("bar_estado_modulo", "B", 2), ("bar_cobertura", "E", 2)]
+    orden = [("pie_total_tc", "B", 0), ("pie_tc_modulo", "E", 0)]
     for name, col, lvl in orden:
         if name not in pngs:
             continue
@@ -533,7 +503,7 @@ def main(argv=None):
     k = conteos(cat)
     out = Path(a.out)
     sufijo = f"{cat['meta']['team']}_{cat['meta']['project']}"
-    pngs = graficas(cat, k, cov, out / "diagramas")
+    pngs = graficas(k, out / "diagramas")
     plan = out / f"SW_Test_Plan_{sufijo}.xlsx"
     construir_plan(cat, k, fecha, plan, TPL / "SW_Test_Plan__Team0X___ProjectName_.xlsx")
     construir_tc_design(plan, out / f"TC_Design_{sufijo}.xlsx")
