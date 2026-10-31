@@ -1,0 +1,23 @@
+# La label "tech-debt" se pone sola y el issue cuenta para Deuda técnica.
+name: Deuda técnica
+description: Trabajo técnico pendiente por haber priorizado rapidez sobre calidad o diseño.
+labels: ["tech-debt"]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué atajo se tomó
+      placeholder: "Ej. validaciones duplicadas en dos pantallas; falta de pruebas en el módulo X."
+    validations:
+      required: true
+  - type: textarea
+    id: costo
+    attributes:
+      label: Qué cuesta no pagarla
+      description: Riesgo o lentitud que provoca si se queda así.
+    validations:
+      required: true
+  - type: textarea
+    id: como
+    attributes:
+      label: Cómo se pagaría
