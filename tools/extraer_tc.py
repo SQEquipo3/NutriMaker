@@ -81,8 +81,8 @@ def issues(repo):
     proc=subprocess.run(['gh','issue','list','--repo',repo,'--label','bug','--state','all','--limit','500','--json','number,title,body,state,author,assignees'],capture_output=True,text=True)
     if proc.returncode: raise RuntimeError('No se pudieron consultar issues bug: '+proc.stderr)
     # Found by = quien abrió el issue; nombres reales desde meta.yml (usuario de GitHub -> nombre)
-    nombres=(yaml.safe_load(META.read_text(encoding='utf8')) or {}).get('nombres') or {}
-    nombre=lambda login: nombres.get(login, login)
+    meta=yaml.safe_load(META.read_text(encoding='utf8')) or {}
+    nombres=meta.get('nombres') or {}
     out=[]
     for issue in json.loads(proc.stdout):
         body=issue.get('body') or ''
@@ -92,8 +92,8 @@ def issues(repo):
         out.append({'id':f"GH-{issue['number']}",'tc':match.group(), 'description':issue['title'],
                     'steps':body[:2000], 'severity':sev.group(1) if sev else '3- Low',
                     'state':'Closed' if issue['state']=='CLOSED' else 'Open',
-                    'found_by':nombre(issue['author']['login']),
-                    'assigned_to':', '.join(nombre(a['login']) for a in issue.get('assignees',[])) or 'Sin asignar'})
+                    'found_by':nombres.get(issue['author']['login'], meta.get('department','QA')),
+                    'assigned_to':', '.join(nombres[a['login']] for a in issue.get('assignees',[]) if a['login'] in nombres) or 'Sin asignar'})
     return out
 
 def main():

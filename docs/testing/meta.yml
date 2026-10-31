@@ -43,6 +43,8 @@ personas:
   A: Lalmao
   B: Stredhy
 
-# Nombre real de cada usuario de GitHub, para «Found by» y «Assigned to» del Bug report.
+# Nombre real de cada integrante (usuario de GitHub -> nombre), para «Found by» y «Assigned to» del Bug report.
+# Quien no está aquí no es del equipo: su issue sale como «Found by: <department>» y no se lista como asignado.
 nombres:
-  Kasinfire: Kelly Arellano
+  Lalmao: Laura
+  Stredhy: Eric
