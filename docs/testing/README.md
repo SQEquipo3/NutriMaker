@@ -1,7 +1,7 @@
 # Automatización QA — NutriMaker
 
 ## Fuentes
-- Casos: anotaciones `@TC(id="UTS-01", rf="RF-01", modulo="login")` precedidas de Javadoc con `@objetivo`, `@precondicion`, `@pasos` (numerados: `1.- …; 2.- …`), `@esperado` y, opcional, `@nota` (sale en el campo *Comments*).
+- Casos: anotaciones `@TC(id="UTS-01", rf="RF-01", modulo="login")` precedidas de Javadoc con `@nombre` (corto: es el *Test name* de la matriz), `@objetivo` (qué regla se prueba, con la clase y el método que se llaman), `@precondicion`, `@pasos` (numerados: `1.- …; 2.- …`), `@esperado` y, opcional, `@nota` (sale en el campo *Comments*).
 - Resultados: `target/surefire-reports/TEST-*.xml` (el nombre del test debe incluir el ID, por ejemplo `UTS_01_correoInvalido`).
 - Cobertura: `target/site/jacoco/jacoco.xml`.
 - Defectos: issues de GitHub con etiqueta `bug` y referencia al ID TC en el cuerpo.

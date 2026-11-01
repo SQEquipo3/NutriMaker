@@ -100,11 +100,23 @@ public class UserRepositoryTest {
     }
 
     /**
-     * @objetivo Verificar que un usuario guardado en la base pueda autenticarse y que las credenciales incorrectas se rechacen.
-     * @precondicion Usuario sembrado en nutrimaker_test con su contraseña en hash BCrypt.
-     * @pasos 1.- Verificar la contraseña correcta del usuario; 2.- Verificar una contraseña incorrecta; 3.- Verificar un correo inexistente
-     * @esperado La contraseña correcta devuelve true; la incorrecta y el correo inexistente devuelven false sin lanzar excepción
-     * Comentarios: No verifica AES-128 ni TLS 1.2 (parte del RF-01); el código usa BCrypt.
+     * @nombre Autenticar un usuario guardado en MySQL
+     * @objetivo Verificar la autenticación contra MySQL: UserRepository.verifyPasswordByEmail(correo,
+     * contraseña) busca el hash de la tabla USUARIO y lo compara con BCrypt.checkpw;
+     * UserRepository.getIdByEmail() regresa el id del usuario. Es lo que usa
+     * LoginController.verifyCredentials() al iniciar sesión (RF-01).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Usuario sembrado directo en USUARIO (sin pasar por UserRepository)
+     * con la contraseña «Abc12345» en hash BCrypt.
+     * @pasos 1.- Llamar verifyPasswordByEmail(correo, "Abc12345");
+     * 2.- Llamarlo con «Abc12346» y con «abc12345» (otra capitalización);
+     * 3.- Llamarlo con un correo que no existe;
+     * 4.- Llamar getIdByEmail() con el correo sembrado y con uno inexistente.
+     * @esperado La contraseña correcta devuelve true; las incorrectas y el correo inexistente devuelven false
+     * sin lanzar excepción; getIdByEmail regresa un id para el usuario y null para el inexistente.
+     * @nota No verifica AES-128 ni TLS 1.2 que menciona la especificación (URS_07, URS_08): el código usa
+     * BCrypt.
      */
     @TC(id = "ITS-01", rf = "RF-01", modulo = "usuarios")
     @Test
@@ -122,10 +134,21 @@ public class UserRepositoryTest {
     }
 
     /**
-     * @objetivo Verificar que el alta guarde el usuario en MySQL y que la contraseña no quede en texto plano.
-     * @precondicion La tabla USUARIO no contiene el correo nuevo.
-     * @pasos 1.- Registrar un correo nuevo con la contraseña Abc12345; 2.- Consultar la fila con SELECT; 3.- Comparar la contraseña guardada con el texto plano
-     * @esperado El alta devuelve true; existe una fila con ese correo; la contraseña guardada es un hash BCrypt distinto del texto plano
+     * @nombre Registrar un usuario en MySQL con contraseña cifrada
+     * @objetivo Verificar el alta de usuarios en MySQL: UserRepository.insertUser(correo, contraseña) debe
+     * guardar una fila en USUARIO con la contraseña cifrada con BCrypt, nunca en texto plano, y el
+     * usuario nuevo debe poder iniciar sesión. Es lo que llama SignUpFormController.signUp() (RF-02;
+     * URS_17: credenciales cifradas).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. La tabla USUARIO no contiene el correo nuevo.
+     * @pasos 1.- Llamar insertUser(correo, "Abc12345");
+     * 2.- Consultar con SELECT la fila de USUARIO de ese correo;
+     * 3.- Revisar la contraseña guardada: distinta del texto, prefijo $2, 60 caracteres y
+     * BCrypt.checkpw válido;
+     * 4.- Llamar verifyPasswordByEmail(correo, "Abc12345").
+     * @esperado insertUser devuelve true; hay exactamente una fila; la contraseña guardada es un hash BCrypt de
+     * esa contraseña; el usuario nuevo se autentica.
      */
     @TC(id = "ITS-02", rf = "RF-02", modulo = "usuarios")
     @Test
@@ -145,11 +168,19 @@ public class UserRepositoryTest {
     }
 
     /**
-     * @objetivo Verificar que no se registren dos usuarios con el mismo correo y que el primero no se altere.
-     * @precondicion Existe un usuario sembrado con ese correo.
-     * @pasos 1.- Intentar registrar otra vez el mismo correo con otra contraseña; 2.- Contar las filas con ese correo; 3.- Verificar que la contraseña original sigue funcionando
-     * @esperado El segundo alta devuelve false sin lanzar excepción; hay una sola fila; solo la contraseña original autentica
-     * Comentarios: La restricción UNIQUE (UNIQ_CORREO) de la tabla es la que rechaza el duplicado.
+     * @nombre Rechazar un correo duplicado en el registro
+     * @objetivo Verificar que no se registren dos usuarios con el mismo correo: UserRepository.insertUser()
+     * debe devolver false (sin lanzar excepción) cuando el correo ya existe, y no debe alterar al
+     * usuario original. Con ese false, signUp() muestra «el correo ya existe» (RF-02; URS_11: correo
+     * único).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Usuario sembrado con el correo de prueba y la contraseña «Abc12345».
+     * @pasos 1.- Llamar insertUser(correo, "Otra123456") con el mismo correo;
+     * 2.- Contar las filas de USUARIO con ese correo;
+     * 3.- Llamar verifyPasswordByEmail con la contraseña original y con la del intento duplicado.
+     * @esperado insertUser devuelve false; sigue habiendo una sola fila; solo la contraseña original autentica.
+     * @nota El duplicado lo rechaza la restricción UNIQUE (UNIQ_CORREO) de la tabla USUARIO.
      */
     @TC(id = "ITS-03", rf = "RF-02", modulo = "usuarios")
     @Test

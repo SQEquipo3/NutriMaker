@@ -65,10 +65,20 @@ public class LoginControllerTest {
     // PRUEBAS UTS-01 (Validación de correo)
     // ==========================================
     /**
-     * @objetivo Verificar que la validación de correo del inicio de sesión acepte correos válidos y rechace los inválidos.
-     * @precondicion LoginController accesible desde la prueba, con el campo de correo simulado.
-     * @pasos 1.- Validar "nutri@correo.com" y "a.b+c@dominio.mx"; 2.- Validar "sin_arroba.com", "a@", "@x.com" y "a b@x.com"; 3.- Validar una cadena vacía
-     * @esperado Los correos válidos devuelven true; los inválidos y la cadena vacía devuelven false
+     * @nombre Formato de correo en el inicio de sesión
+     * @objetivo Verificar la validación de formato de correo del inicio de sesión: LoginController.checkEmail()
+     * compara el texto de emailTextField con la expresión regular REG_EXP_VER_EMAIL. Si devuelve
+     * false, login() muestra «credenciales incorrectas» sin consultar la base (URS_02: validar el
+     * correo con expresión regular).
+     * @precondicion LoginController creado en la prueba, con emailTextField asignado por reflexión. JavaFX
+     * iniciado con Platform.startup(); no usa base de datos.
+     * @pasos 1.- En UTS_01_correosValidos: llamar checkEmail() con «nutri@correo.com» y con
+     * «a.b+c@dominio.mx»;
+     * 2.- En UTS_01_correosInvalidos: llamarlo con «sin_arroba.com», «a@», «@x.com» y «a b@x.com»;
+     * 3.- En UTS_01_correoVacioONull: llamarlo con una cadena vacía y con el campo en null.
+     * @esperado Los dos correos válidos devuelven true; los cuatro inválidos y la cadena vacía devuelven false;
+     * con el campo en null lanza una excepción (la pantalla siempre crea el campo, así que no es un
+     * caso de uso real).
      */
     @TC(id="UTS-01", rf="RF-01", modulo="login")
     @Test
@@ -119,10 +129,18 @@ public class LoginControllerTest {
     // PRUEBA UTS-02 (Credenciales incompletas)
     // ==========================================
     /**
-     * @objetivo Verificar que el inicio de sesión detecte cuando falta el correo, la contraseña o ambos.
-     * @precondicion LoginController accesible desde la prueba, con los campos de correo y contraseña simulados.
-     * @pasos 1.- Correo vacío con contraseña; 2.- Correo con contraseña vacía; 3.- Ambos vacíos
-     * @esperado El método isEmpty devuelve true en los tres casos y evita consultas a la BD.
+     * @nombre Credenciales incompletas en el inicio de sesión
+     * @objetivo Verificar que el inicio de sesión detecte credenciales incompletas: LoginController.isEmpty()
+     * devuelve true si falta el correo o la contraseña. login() lo revisa primero y, si es true,
+     * muestra «No se admite texto vacio» y termina antes de llamar a verifyCredentials() y a
+     * UserRepository (URS_06: alerta por campos vacíos).
+     * @precondicion LoginController creado en la prueba, con emailTextField y passwordTextField asignados por
+     * reflexión. No usa base de datos.
+     * @pasos 1.- Llamar isEmpty() con el correo vacío y la contraseña «Abc12345»;
+     * 2.- Llamarlo con el correo «nutri@correo.com» y la contraseña vacía;
+     * 3.- Llamarlo con ambos vacíos.
+     * @esperado isEmpty() devuelve true en los tres casos, que es la condición con la que login() detiene el
+     * acceso.
      */
     @TC(id="UTS-02", rf="RF-01", modulo="login")
     @Test
@@ -159,10 +177,18 @@ public class LoginControllerTest {
     // PRUEBA UTS-03 (Validar contraseña en registro)
     // ==========================================
     /**
-     * @objetivo Verificar los límites de longitud de la contraseña del registro (8 a 16 caracteres).
-     * @precondicion SignUpFormController accesible desde la prueba.
-     * @pasos 1.- Validar contraseñas de 7, 8, 16 y 17 caracteres
-     * @esperado Las de 8 y 16 caracteres devuelven true; las de 7 y 17 devuelven false
+     * @nombre Longitud de la contraseña en el registro
+     * @objetivo Verificar los límites de longitud de la contraseña en el registro:
+     * SignUpFormController.checkPassword(String) acepta de 8 a 16 caracteres según REG_EXP_VER_PASS.
+     * signUp() la usa antes de llamar a UserRepository.insertUser() (URS_03: contraseña de 8 a 16
+     * caracteres).
+     * @precondicion SignUpFormController creado en la prueba; checkPassword(String) se invoca por reflexión. No
+     * usa base de datos.
+     * @pasos 1.- Llamar checkPassword("Abc1234") (7 caracteres);
+     * 2.- Llamar checkPassword("Abc12345") (8 caracteres);
+     * 3.- Llamar checkPassword("1234567890123456") (16 caracteres);
+     * 4.- Llamar checkPassword("12345678901234567") (17 caracteres).
+     * @esperado Las de 8 y 16 caracteres devuelven true; las de 7 y 17 devuelven false.
      */
     @TC(id="UTS-03", rf="RF-02", modulo="registro")
     @Test
@@ -181,10 +207,21 @@ public class LoginControllerTest {
     // PRUEBA UTS-04 (Rechazar correos y campos vacíos en registro)
     // ==========================================
     /**
-     * @objetivo Verificar que el registro rechace correos inválidos y detecte campos vacíos (individuales o totales) para frenar el alta.
-     * @precondicion SignUpFormController accesible desde la prueba, con los campos simulados.
-     * @pasos 1.- Probar correo con formato inválido. 2.- Probar un solo campo vacío (parcial). 3.- Probar los tres campos vacíos.
-     * @esperado Se rechazan correos inválidos; se detectan correctamente los campos vacíos.
+     * @nombre Correo inválido y campos vacíos en el registro
+     * @objetivo Verificar las validaciones del formulario de registro: SignUpFormController.checkEmail() debe
+     * rechazar un correo sin formato válido y SignUpFormController.isEmpty() debe detectar cualquier
+     * campo vacío (correo, contraseña o confirmación), para que signUp() muestre «No se admite texto
+     * vacio» en vez de un error genérico (URS_06 y URS_12: alertas específicas al registrar
+     * información incompleta).
+     * @precondicion SignUpFormController creado en la prueba, con emailTextField, passwordTextField y
+     * confPasswordTextField asignados por reflexión. No usa base de datos.
+     * @pasos 1.- Llamar checkEmail() con «correo_sin_arroba.com»;
+     * 2.- Llamar isEmpty() con los tres campos vacíos;
+     * 3.- Llamar isEmpty() con el correo vacío y las dos contraseñas «Abc12345».
+     * @esperado checkEmail() devuelve false; isEmpty() devuelve true con los tres vacíos y también con solo el
+     * correo vacío.
+     * @nota Hoy el último caso falla: isEmpty() une las condiciones con && y solo detecta los tres campos
+     * vacíos, así que con el correo vacío el usuario ve «credenciales incorrectas» (issue #65).
      */
     @TC(id="UTS-04", rf="RF-02", modulo="registro")
     @Test
@@ -208,16 +245,15 @@ public class LoginControllerTest {
         assertTrue((Boolean) isEmptyMethod.invoke(signUpCtrl));
 
         // Caso B: Un solo campo vacío parcial (Correo vacío, pero contraseñas con texto)
-        // DEFECTO DETECTADO: Como SignUpFormController.isEmpty() usa '&&', si dejamos un campo vacío 
-        // individualmente, devuelve false por error de diseño en los desarrolladores.
+        // Correo vacío con contraseñas llenas: el registro debe reconocerlo como campo vacío.
         simularTextoEnEmail(signUpCtrl, new TextField(""));
         PasswordField passValido = new PasswordField(); passValido.setText("Abc12345");
         simularTextoEnPassword(signUpCtrl, passValido);
         simularConfPassword(signUpCtrl, passValido);
         
         boolean resultadoParcial = (Boolean) isEmptyMethod.invoke(signUpCtrl);
-        // Si el sistema tuviera lógica correcta (usando ||), esto debería ser true. 
-        // Al usar &&, devuelve false, evidenciando el defecto:
-        assertFalse(resultadoParcial, "DEFECTO DETECTADO: El método isEmpty() de SignUpFormController usa && y no detecta un campo vacío de forma individual.");
+        // Lo correcto (URS_06, URS_12) es detectar cualquier campo vacío. Hoy isEmpty() usa && y solo
+        // detecta los tres vacíos: esta aserción falla mientras el defecto siga abierto.
+        assertTrue(resultadoParcial, "isEmpty() de SignUpFormController debe detectar un solo campo vacío (hoy usa &&)");
     }
 }

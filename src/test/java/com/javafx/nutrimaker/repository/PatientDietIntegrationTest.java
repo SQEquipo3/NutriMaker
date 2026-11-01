@@ -61,11 +61,19 @@ public class PatientDietIntegrationTest {
     // PRUEBA ITS-04 (Alta de paciente en MySQL)
     // ==========================================
     /**
-     * @objetivo Comprobar que RF-05 registra y recupera correctamente los datos del paciente.
-     * @precondicion MySQL de XAMPP disponible y nutrimaker_test con la tabla PACIENTE.
-     * @pasos 1.- Crear paciente con datos identificables; 2.- Consultarlo por su ID;
-     * 3.- Comparar nombre, edad, peso y altura con los valores originales.
-     * @esperado El paciente existe con ID positivo y sus datos persisten sin alteraciones.
+     * @nombre Registrar y consultar un paciente en MySQL
+     * @objetivo Verificar el registro de pacientes en MySQL: PatientRepository.createPatientAndGetId(nombre,
+     * edad, peso, altura) inserta en PACIENTE y regresa su id, y PatientRepository.getPatientById(id)
+     * lo recupera con los mismos datos. Es lo que usa PatientFormController al guardar el formulario
+     * «Nuevo paciente» (RF-05).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar.
+     * @pasos 1.- Llamar createPatientAndGetId("QA-ITS04-…", 29, 68.5, 172.0);
+     * 2.- Llamar getPatientById(id) y leer el JSON;
+     * 3.- Comparar id, nombre, edad, peso y altura con los valores capturados.
+     * @esperado El id es mayor que 0 y el paciente recuperado tiene exactamente el nombre, la edad 29, el peso
+     * 68.5 y la altura 172.0.
      */
     @TC(id = "ITS-04", rf = "RF-05", modulo = "pacientes")
     @Test
@@ -85,14 +93,28 @@ public class PatientDietIntegrationTest {
     // PRUEBA ITS-05 (Generación y guardado de dieta)
     // ==========================================
     /**
-     * @objetivo Verificar que RF-04 genera y guarda una dieta completa para el paciente correcto.
-     * @precondicion Base nutrimaker_test con recetas fuente suficientes para seis días,
-     * y permisos de INSERT/SELECT/DELETE sobre USUARIO, PACIENTE, DIETA y COMIDA.
-     * @pasos 1.- Registrar usuario y dos pacientes; 2.- Generar para el primer paciente
-     * una dieta de 2000 kcal, tres comidas y domingo de descanso; 3.- Consultar MySQL;
-     * 4.- Verificar asociación, seis días activos, domingo vacío, calorías y variedad.
-     * @esperado La dieta pertenece al paciente elegido, no al último creado;
-     * tiene 18 comidas, ninguna el domingo y totales diarios dentro de +/-10%.
+     * @nombre Generar y guardar una dieta para el paciente correcto
+     * @objetivo Verificar la generación automática de dietas contra MySQL:
+     * MealRepository.createNewDiet(calorías, comidasPorDía, díaDescanso, usuario, paciente,
+     * comentario) arma el menú semanal con DistribuidorDeCalorias y el catálogo de COMIDA y lo guarda
+     * en DIETA y COMIDA. La dieta debe quedar ligada al paciente elegido, con una comida por tiempo
+     * en cada día activo, el día de descanso vacío y las calorías dentro del presupuesto (RF-04;
+     * URS_20).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Catálogo de recetas suficiente para seis días; un usuario y dos
+     * pacientes creados en la prueba.
+     * @pasos 1.- Crear el usuario con UserRepository.insertUser() y dos pacientes con
+     * createPatientAndGetId();
+     * 2.- Llamar createNewDiet(2000, 3, "SUNDAY", usuario, primerPaciente, marca);
+     * 3.- Leer la dieta con DietRepository.getDietById() y contar sus comidas por día en COMIDA;
+     * 4.- Revisar paciente, comidas por día, domingo vacío, total diario y presupuesto de cada tiempo
+     * (600/800/600 kcal).
+     * @esperado La dieta pertenece al primer paciente (no al último creado), tiene 3 comidas en cada uno de los
+     * 6 días activos (18), ninguna el domingo, cada día suma 2000 kcal ±10 %, ninguna comida supera
+     * su presupuesto y el menú no se repite igual toda la semana.
+     * @nota Hoy falla el presupuesto por comida: el algoritmo ajusta la suma diaria pero no limita cada tiempo
+     * (issue #46).
      */
     @TC(id = "ITS-05", rf = "RF-04", modulo = "crear-dieta")
     @Test
