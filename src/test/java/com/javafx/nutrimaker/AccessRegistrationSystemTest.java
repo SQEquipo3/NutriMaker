@@ -103,10 +103,20 @@ public class AccessRegistrationSystemTest extends ApplicationTest {
     // PRUEBA STS-01 (ACCESO CORRECTO)
     // ==========================================
     /**
-     * @objetivo Verificar que un usuario registrado acceda a almacenamiento de dietas desde JavaFX.
-     * @precondicion Base nutrimaker_test disponible y usuario temporal registrado.
-     * @pasos 1.- Abrir LoginForm; 2.- Escribir credenciales válidas; 3.- Pulsar Iniciar Sesión; 4.- Verificar pantalla de dietas.
-     * @esperado La ventana muestra Almacenamiento de Dietas y su tabla de dietas.
+     * @nombre Inicio de sesión correcto desde la interfaz
+     * @objetivo Verificar el inicio de sesión de punta a punta desde la interfaz: en LoginForm.fxml, al pulsar
+     * «Iniciar sesión», LoginController.login() valida los campos, autentica con
+     * UserRepository.verifyPasswordByEmail() y abre la pantalla «Almacenamiento de Dietas» (RF-01;
+     * URS_05: solo usuarios registrados).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Usuario temporal registrado con
+     * UserRepository.insertUser() y la contraseña «Prueba1234».
+     * @pasos 1.- Abrir LoginForm.fxml;
+     * 2.- Escribir el correo y la contraseña en #emailTextField y #passwordTextField;
+     * 3.- Pulsar #loginButton;
+     * 4.- Buscar la tabla #dietsTable.
+     * @esperado Se abre «Almacenamiento de Dietas» y se muestra su tabla de dietas.
      */
     @TC(id="STS-01", rf="RF-01", modulo="login")
     @Test
@@ -123,10 +133,17 @@ public class AccessRegistrationSystemTest extends ApplicationTest {
     // PRUEBA STS-02 (CREDENCIALES INCORRECTAS)
     // ==========================================
     /**
-     * @objetivo Verificar que credenciales incorrectas muestren una advertencia sin cerrar el login.
-     * @precondicion Formulario de acceso abierto y usuario temporal registrado.
-     * @pasos 1.- Introducir correo válido y contraseña errónea; 2.- Pulsar Iniciar Sesión; 3.- Comprobar mensaje y permanencia del formulario.
-     * @esperado Se muestra un diálogo de credenciales incorrectas y el login permanece abierto.
+     * @nombre Credenciales incorrectas desde la interfaz
+     * @objetivo Verificar que credenciales incorrectas no den acceso desde la interfaz: LoginController.login()
+     * llama invalidCredentials(), que abre una ventana de advertencia, y el formulario de login sigue
+     * abierto (RF-01; URS_04: notificar credenciales incorrectas).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Usuario temporal registrado.
+     * @pasos 1.- Escribir el correo del usuario y la contraseña «Incorrecta1»;
+     * 2.- Pulsar #loginButton;
+     * 3.- Contar las ventanas abiertas y buscar #loginButton.
+     * @esperado Aparece una segunda ventana con la advertencia y el formulario de login sigue visible.
      */
     @TC(id="STS-02", rf="RF-01", modulo="login")
     @Test
@@ -144,10 +161,21 @@ public class AccessRegistrationSystemTest extends ApplicationTest {
     // PRUEBA STS-03 (REGISTRO Y CONFIRMACIÓN)
     // ==========================================
     /**
-     * @objetivo Verificar el registro desde JavaFX y la confirmación visible al usuario.
-     * @precondicion Base nutrimaker_test disponible y correo temporal no registrado.
-     * @pasos 1.- Abrir Registrarse; 2.- Escribir correo y contraseñas válidas; 3.- Confirmar registro; 4.- Comprobar diálogo y usuario persistido.
-     * @esperado El usuario queda registrado y aparece el mensaje Registro completado sin cerrar la aplicación.
+     * @nombre Registro con confirmación desde la interfaz
+     * @objetivo Verificar el registro de un usuario desde la interfaz: en el formulario «Registrarse»,
+     * SignUpFormController.signUp() valida los datos, guarda con UserRepository.insertUser() y
+     * muestra la confirmación «Registro completado» (RF-02; URS_09 y URS_43).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Correo temporal que no existe en
+     * USUARIO.
+     * @pasos 1.- Pulsar #signupButton en el login para abrir el registro;
+     * 2.- Escribir correo, contraseña «Prueba1234» y su confirmación;
+     * 3.- Pulsar #signupButton;
+     * 4.- Buscar el usuario con UserRepository.getIdByEmail() y el texto «Registro completado» en
+     * pantalla.
+     * @esperado El usuario queda guardado en nutrimaker_test y se muestra «Registro completado» sin cerrar la
+     * aplicación.
      */
     @TC(id="STS-03", rf="RF-02", modulo="registro")
     @Test

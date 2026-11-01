@@ -2,7 +2,7 @@
 """Convierte @TC + Javadoc, Surefire, JaCoCo e issues bug al formato interno del generador.
 
 Formato de anotación previsto: @TC(id="UTS-01", rf="RF-01", modulo="login")
-Javadoc: @objetivo, @precondicion, @pasos ("1.- A; 2.- B"), @esperado y @nota opcional (sale en Comments).
+Javadoc: @nombre (corto, sale como Test name), @objetivo, @precondicion, @pasos ("1.- A; 2.- B"), @esperado y @nota opcional (sale en Comments).
 Los casos sin pruebas no se inventan: el validador informará qué falta.
 """
 import argparse
@@ -29,12 +29,12 @@ def catalogo():
             if not re.fullmatch(r'(UTS|ITS|STS|ATS)-\d{2,}', id_):
                 raise ValueError(f'{file}: @TC sin ID válido: {id_}')
             # Cada etiqueta llega hasta la siguiente; puede ocupar varias líneas del Javadoc
-            tags = dict(re.findall(r'@(objetivo|precondicion|pasos|esperado|nota)\s+(.*?)(?=@(?:objetivo|precondicion|pasos|esperado|nota)\b|\Z)', doc, re.S))
+            tags = dict(re.findall(r'@(nombre|objetivo|precondicion|pasos|esperado|nota)\s+(.*?)(?=@(?:nombre|objetivo|precondicion|pasos|esperado|nota)\b|\Z)', doc, re.S))
             def clean(s): return re.sub(r'\s+', ' ', s.replace('*','')).strip()
             # "1.- A; 2.- B" -> ["A", "B"]: el generador vuelve a numerar cada paso
             steps = [p.strip(' ;') for p in re.split(r'\d+\.-\s*', clean(tags.get('pasos','Ejecutar prueba JUnit'))) if p.strip(' ;')]
             case = {'id':id_, 'level':id_.split('-')[0], 'module':attrs.get('modulo','general'),
-                    'name':clean(tags.get('objetivo',id_)), 'objective':clean(tags.get('objetivo',id_)),
+                    'name':clean(tags.get('nombre') or tags.get('objetivo',id_)), 'objective':clean(tags.get('objetivo',id_)),
                     'pre':clean(tags.get('precondicion','Preparar entorno de prueba')),
                     'steps':steps,
                     'expected':[clean(tags.get('esperado','Aserciones satisfactorias'))],

@@ -30,12 +30,21 @@ public class SystemPatientDietTest extends NutriMakerGuiTest {
     // PRUEBA STS-04 (Registrar un paciente desde el formulario)
     // ==========================================
     /**
-     * @objetivo Verificar la captura de los datos del paciente desde la interfaz.
-     * @precondicion Sesión iniciada con un usuario de nutrimaker_test.
-     * @pasos 1.- Pulsar Nueva en el almacenamiento; 2.- Pulsar Guardar con la altura vacía;
-     * 3.- Capturar letras en la edad y guardar; 4.- Capturar nombre, edad, peso y altura válidos y guardar.
-     * @esperado Se abre el formulario de paciente; los datos incompletos o con letras muestran su aviso y no se
-     * guardan; con datos válidos se abre la creación de dieta y el paciente queda registrado en MySQL.
+     * @nombre Registrar un paciente desde el formulario
+     * @objetivo Verificar la captura de un paciente desde la interfaz: el formulario «Nuevo paciente»
+     * (PatientFormController) muestra un aviso con dialog() cuando checkInputs() rechaza los datos, y
+     * con datos válidos guarda el paciente con PatientRepository y abre la pantalla «Crear dieta»
+     * (RF-05; URS_23 y URS_24).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Sesión iniciada con un usuario temporal.
+     * @pasos 1.- Pulsar #createButton (Nueva) en el almacenamiento de dietas;
+     * 2.- Capturar nombre, edad 34 y peso 62.5 con la altura vacía, y pulsar #saveButton;
+     * 3.- Capturar la edad «treinta» y pulsar #saveButton;
+     * 4.- Capturar edad 34, peso 62.5 y altura 1.65 y pulsar #saveButton.
+     * @esperado Se abre el formulario; la altura vacía muestra «No pueden existir campos vacios» y la edad con
+     * letras «Solo se permiten números enteros», sin guardar; con datos válidos se abre «Crear dieta»
+     * y el paciente queda en PACIENTE con esos datos.
      */
     @TC(id = "STS-04", rf = "RF-05", modulo = "pacientes")
     @Test
@@ -68,12 +77,23 @@ public class SystemPatientDietTest extends NutriMakerGuiTest {
     // PRUEBA STS-05 (Generar una dieta desde JavaFX)
     // ==========================================
     /**
-     * @objetivo Verificar la generación de una dieta desde la pantalla de creación.
-     * @precondicion Sesión iniciada y un paciente capturado en el formulario.
-     * @pasos 1.- Capturar 2000 kcal, 3 comidas, descanso el domingo y un comentario;
-     * 2.- Pulsar Guardar; 3.- Esperar el mensaje de resultado; 4.- Revisar el almacenamiento de dietas.
-     * @esperado Aparece el aviso de dieta creada con éxito; el almacenamiento muestra la dieta nueva con el
-     * paciente y la fecha de hoy; en MySQL tiene 18 comidas y ninguna el domingo.
+     * @nombre Generar una dieta desde la interfaz
+     * @objetivo Verificar la generación de una dieta desde la interfaz: en «Crear dieta»,
+     * CreateDietController.save() valida con checkInputs(), llama a MealRepository.createNewDiet() y
+     * regresa al almacenamiento, donde aparece la dieta nueva (RF-04; URS_20 y URS_21).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Sesión iniciada y paciente capturado
+     * desde el formulario «Nuevo paciente».
+     * @pasos 1.- Capturar 2000 en #calTextField, 3 en #quantityFoodDistribution, «Domingo» en #selectFreeDay
+     * y un comentario;
+     * 2.- Pulsar #saveButton;
+     * 3.- Esperar el aviso «¡La dieta se ha creado con exito!» y la pantalla «Almacenamiento de
+     * Dietas»;
+     * 4.- Leer la primera fila de la tabla y contar sus comidas en COMIDA.
+     * @esperado Aparece el aviso de éxito; la tabla muestra la dieta con el paciente y la fecha de hoy; en
+     * MySQL tiene 18 comidas y ninguna el domingo.
+     * @nota El issue #61 (fecha de mañana al crear de noche) ya está cerrado.
      */
     @TC(id = "STS-05", rf = "RF-04", modulo = "crear-dieta")
     @Test
@@ -108,11 +128,21 @@ public class SystemPatientDietTest extends NutriMakerGuiTest {
     // PRUEBA STS-06 (Visualizar las dietas almacenadas)
     // ==========================================
     /**
-     * @objetivo Verificar el listado de dietas y la paginación.
-     * @precondicion Usuario con 25 dietas en nutrimaker_test.
-     * @pasos 1.- Iniciar sesión; 2.- Revisar la primera página; 3.- Pasar a las páginas 2 y 3; 4.- Regresar a la página 2.
-     * @esperado Se abre el almacenamiento con 10 dietas con paciente, peso, altura y fecha; las páginas 2 y 3
-     * muestran 10 y 5 dietas sin repetirse; los botones de anterior y siguiente se muestran solo cuando aplican.
+     * @nombre Ver y paginar las dietas almacenadas
+     * @objetivo Verificar la pantalla «Almacenamiento de Dietas» con muchas dietas: DietStorageController
+     * muestra 10 dietas por página (DietRepository.getDiets) con paciente, peso, altura y fecha, y
+     * los botones #prevButton y #nextButton solo aparecen cuando hay página anterior o siguiente
+     * (RF-03; URS_14).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Usuario con 25 dietas creadas con
+     * DietRepository.createDiet().
+     * @pasos 1.- Iniciar sesión y revisar la primera página;
+     * 2.- Pulsar #nextButton para ir a la página 2 y luego a la 3;
+     * 3.- Pulsar #prevButton para regresar a la página 2.
+     * @esperado La página 1 tiene 10 dietas con paciente, peso, altura y la fecha de hoy, sin «anterior»; las
+     * páginas 2 y 3 tienen 10 y 5 dietas, sin repetir ninguna de las 25; en la última no hay
+     * «siguiente»; al regresar se ve la misma página 2.
      */
     @TC(id = "STS-06", rf = "RF-03", modulo = "dietas-almacenadas")
     @Test
@@ -154,12 +184,22 @@ public class SystemPatientDietTest extends NutriMakerGuiTest {
     // PRUEBA STS-10 (Navegación entre pantallas de gestión de dietas)
     // ==========================================
     /**
-     * @objetivo Verificar que se pueda navegar entre las pantallas de gestión de dietas sin errores ni cierres.
-     * @precondicion Sesión iniciada con una dieta generada.
-     * @pasos 1.- Ir de almacenamiento a formulario de paciente y a creación de dieta; 2.- Guardar la dieta para
-     * regresar al almacenamiento; 3.- Abrir Editar dieta y cancelar; 4.- Abrir Eliminar y cancelar.
-     * @esperado Cada pantalla se abre en la misma ventana; al guardar se regresa al almacenamiento; los diálogos
-     * de edición y eliminación se cierran y regresan al almacenamiento con las dietas intactas.
+     * @nombre Navegar entre las pantallas de dietas
+     * @objetivo Verificar la navegación entre las pantallas de gestión de dietas sin errores: almacenamiento →
+     * «Nuevo paciente» → «Crear dieta» → almacenamiento, y abrir y cancelar los diálogos «Editar
+     * Dieta» y Eliminar, sin cerrar la ventana principal ni modificar dietas (RF-03; URS_19: acceso a
+     * las opciones principales; URS_30: cancelar el borrado).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Sesión iniciada con una dieta generada
+     * con MealRepository.createNewDiet().
+     * @pasos 1.- Pulsar #createButton, capturar un paciente y guardar para llegar a «Crear dieta»;
+     * 2.- Capturar 2000 kcal, 3 comidas, «Domingo» y un comentario, y guardar;
+     * 3.- Pulsar Editar en una fila y luego #cancelButton;
+     * 4.- Pulsar Eliminar en otra fila y luego #cancelBtn.
+     * @esperado Cada pantalla se abre en la misma ventana; al guardar se regresa al almacenamiento con las dos
+     * dietas; los diálogos se cierran al cancelar, el título sigue siendo «Almacenamiento de Dietas»
+     * y las dietas no cambian.
      */
     @TC(id = "STS-10", rf = "RF-03", modulo = "dietas-almacenadas")
     @Test

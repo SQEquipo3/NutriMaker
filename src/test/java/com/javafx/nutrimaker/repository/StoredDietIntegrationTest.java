@@ -110,11 +110,20 @@ public class StoredDietIntegrationTest {
     // PRUEBA ITS-06 (Listado y paginación de dietas)
     // ==========================================
     /**
-     * @objetivo Verificar que el listado y el conteo de dietas se filtren por usuario y respeten la paginación.
-     * @precondicion MySQL de XAMPP activo; nutrimaker_test disponible y aislada.
-     * @pasos 1.- Crear dos usuarios y sus pacientes; 2.- Crear 25 dietas de A y 2 de B;
-     * 3.- Consultar conteos y páginas de A con límite 10; 4.- Comprobar que B solo ve sus dos dietas.
-     * @esperado A obtiene 25 dietas distribuidas 10, 10 y 5; B obtiene solo 2, sin dietas ajenas.
+     * @nombre Listar y paginar las dietas de cada usuario
+     * @objetivo Verificar el listado de dietas almacenadas: DietRepository.getTotalDietsCount(usuario) y
+     * DietRepository.getDiets(offset, límite, usuario) deben devolver solo las dietas de ese usuario
+     * y paginarlas sin repetir. Es lo que usa DietStorageController para llenar la tabla de la
+     * pantalla principal de 10 en 10 (RF-03).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Dos usuarios (A y B), cada uno con su paciente.
+     * @pasos 1.- Crear 25 dietas de A y 2 de B con DietRepository.createDiet();
+     * 2.- Llamar getTotalDietsCount() para A y para B;
+     * 3.- Llamar getDiets(0, 10, A), getDiets(10, 10, A) y getDiets(20, 10, A);
+     * 4.- Llamar getDiets(0, 10, B) y revisar en DIETA el dueño de cada dieta devuelta.
+     * @esperado A tiene 25 dietas repartidas en páginas de 10, 10 y 5 sin repetirse; B tiene 2; cada usuario
+     * solo recibe sus dietas.
      */
     @TC(id = "ITS-06", rf = "RF-03", modulo = "dietas-almacenadas")
     @Test
@@ -149,11 +158,22 @@ public class StoredDietIntegrationTest {
     // PRUEBA ITS-08 (Eliminación sin registros huérfanos)
     // ==========================================
     /**
-     * @objetivo Verificar que eliminar una dieta borre sus comidas y relaciones de ingredientes sin afectar otras dietas.
-     * @precondicion Base nutrimaker_test activa y recetas de prueba disponibles en COMIDA.
-     * @pasos 1.- Crear dos dietas de prueba; 2.- Copiar una comida existente a la primera dieta;
-     * 3.- Eliminar la primera mediante DietRepository; 4.- Verificar ausencia de dieta, comidas y relaciones.
-     * @esperado La dieta y sus relaciones desaparecen; la segunda dieta permanece intacta.
+     * @nombre Eliminar una dieta sin dejar registros huérfanos
+     * @objetivo Verificar la eliminación de una dieta en MySQL: DietRepository.deleteDiet(id) debe borrar la
+     * dieta, sus comidas (COMIDA) y los ingredientes de esas comidas (INGREDIENTE_COMIDA) sin dejar
+     * registros huérfanos ni tocar otras dietas. Es lo que se ejecuta al confirmar «Eliminar» en la
+     * pantalla principal (RF-07).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Dos dietas de usuarios distintos y al menos una comida del catálogo
+     * con ingredientes.
+     * @pasos 1.- Crear dos dietas con DietRepository.createDiet();
+     * 2.- Copiar una comida con ingredientes a la primera con DietRepository.copyMealToDiet();
+     * 3.- Llamar deleteDiet(primera) y leer el campo deleted;
+     * 4.- Contar en DIETA, COMIDA e INGREDIENTE_COMIDA lo que queda de la primera y revisar la
+     * segunda.
+     * @esperado deleteDiet reporta deleted = 1; no queda la dieta, ni sus comidas, ni los ingredientes
+     * copiados; la segunda dieta sigue.
      */
     @TC(id = "ITS-08", rf = "RF-07", modulo = "eliminar-dieta")
     @Test
@@ -178,12 +198,22 @@ public class StoredDietIntegrationTest {
     // PRUEBA ITS-09 (Detalle, aislamiento y clonación)
     // ==========================================
     /**
-     * @objetivo Verificar que un usuario solo consulte y clone sus dietas, preservando el detalle de las comidas.
-     * @precondicion nutrimaker_test activa con al menos una comida de catálogo que se pueda copiar.
-     * @pasos 1.- Crear una dieta de A con una comida y un paciente destino;
-     * 2.- Consultar detalle como A y rechazar consulta de B; 3.- Clonar como A;
-     * 4.- Comprobar propietario, paciente, comidas y rechazo de clonación como B.
-     * @esperado B no consulta ni clona la dieta de A; el clon pertenece a A y conserva las comidas.
+     * @nombre Consultar y clonar solo dietas propias
+     * @objetivo Verificar que cada usuario solo consulte y clone sus propias dietas:
+     * DietRepository.getDietByIdForUser(dieta, usuario) y DietRepository.cloneDietForPatient(dieta,
+     * usuario, paciente, …) rechazan dietas ajenas con IOException, y el clon conserva las comidas y
+     * queda a nombre del usuario y del paciente destino. Es lo que usa la acción «Clonar» (RF-03;
+     * URS_28: clonar duplicando toda la información).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Dieta del usuario A con una comida copiada del catálogo, un paciente
+     * destino y un usuario B.
+     * @pasos 1.- Llamar getDietByIdForUser(dieta, A) y getDietByIdForUser(dieta, B);
+     * 2.- Llamar cloneDietForPatient(dieta, B, pacienteB, …);
+     * 3.- Llamar cloneDietForPatient(dieta, A, pacienteDestino, …) y leer el clon;
+     * 4.- Comparar el número de comidas del original y del clon, y consultar el clon como B.
+     * @esperado A consulta su dieta; B no puede consultarla ni clonarla (IOException); el clon pertenece a A y
+     * al paciente destino, tiene las mismas comidas que el original y B tampoco puede consultarlo.
      */
     @TC(id = "ITS-09", rf = "RF-03", modulo = "dietas-almacenadas")
     @Test

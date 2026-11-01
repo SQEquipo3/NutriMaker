@@ -103,13 +103,23 @@ public class EditDietAndPdfIntegrationTest {
     // PRUEBA ITS-07 (Modificar una dieta existente)
     // ==========================================
     /**
-     * @objetivo Verificar que la modificación de una dieta persista en MySQL sin alterar las comidas que no cambian.
-     * @precondicion nutrimaker_test con catálogo de recetas; dieta generada de 3 comidas con descanso el domingo.
-     * @pasos 1.- Cambiar comentario, calorías y día de descanso (domingo a sábado) con updateDietForUser;
-     * 2.- Consultar la dieta y sus comidas en MySQL; 3.- Comparar las comidas con las originales;
-     * 4.- Intentar editarla con otro usuario y cambiar la cantidad de comidas.
-     * @esperado Los cambios persisten; las comidas del sábado pasan al domingo y las demás quedan idénticas;
-     * otro usuario y el cambio de cantidad de comidas se rechazan sin modificar nada.
+     * @nombre Modificar una dieta sin alterar sus comidas
+     * @objetivo Verificar la edición de una dieta en MySQL: DietRepository.updateDietForUser(dieta, usuario,
+     * cambios) guarda comentario, calorías y día de descanso, mueve las comidas del nuevo día de
+     * descanso al anterior y deja las demás idénticas; rechaza la edición de un usuario ajeno y el
+     * cambio de cantidad de comidas sin regenerar. Es lo que llama EditDietController.save() (RF-06;
+     * URS_25 y URS_26).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Dieta generada con MealRepository.createNewDiet(2000, 3, "SUNDAY",
+     * …) y un segundo usuario.
+     * @pasos 1.- Llamar updateDietForUser(dieta, usuario, {note, calories: 2100, rest_day: SATURDAY,
+     * meals_per_day: 3});
+     * 2.- Leer la dieta con getDietByIdForUser() y sus comidas de COMIDA;
+     * 3.- Comparar cada comida con la original;
+     * 4.- Llamar updateDietForUser con el otro usuario y con meals_per_day 4.
+     * @esperado Comentario, 2100 kcal y SATURDAY quedan guardados; las comidas del sábado pasan al domingo y
+     * las demás no cambian; los dos últimos intentos lanzan IOException y no modifican nada.
      */
     @TC(id = "ITS-07", rf = "RF-06", modulo = "modificar-dieta")
     @Test
@@ -154,12 +164,23 @@ public class EditDietAndPdfIntegrationTest {
     // PRUEBA ITS-10 (PDF con los datos recuperados de MySQL)
     // ==========================================
     /**
-     * @objetivo Verificar que PDFBuilder genere un archivo válido con los datos de la dieta recuperada desde MySQL.
-     * @precondicion Dieta generada con comentario y 6 días con comidas; carpeta Documents del usuario disponible.
-     * @pasos 1.- Recuperar la dieta y su paciente con getDietObjectById; 2.- Generar el PDF con PDFBuilder;
-     * 3.- Revisar el archivo: tamaño, cabecera %PDF, páginas y texto.
-     * @esperado La dieta trae paciente y 18 comidas; el PDF se crea sin error, pesa más de 0 bytes,
-     * tiene al menos una página y contiene el nombre del paciente, el comentario y las comidas.
+     * @nombre Generar el PDF con datos de MySQL
+     * @objetivo Verificar la exportación a PDF con datos reales: DietRepository.getDietObjectById(id) arma el
+     * objeto Diet con su paciente y sus comidas desde MySQL, y PDFBuilder.generatePdf(diet) escribe
+     * ~/Documents/diet.pdf con esos datos. Es lo que hace el botón PDF de la pantalla principal
+     * mediante PDFBuilder.exportPdf() (RF-08; URS_31).
+     * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
+     * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
+     * se borran al terminar. Dieta generada con comentario y 18 comidas. Si ya existe
+     * ~/Documents/diet.pdf se respalda y se restaura al final.
+     * @pasos 1.- Llamar getDietObjectById(id) y revisar paciente, comentario y número de comidas;
+     * 2.- Llamar PDFBuilder.generatePdf(diet) por reflexión (exportPdf además abre el visor del
+     * sistema, que no existe en CI);
+     * 3.- Revisar el archivo: tamaño, cabecera %PDF y número de páginas;
+     * 4.- Extraer el texto con iText y buscar el paciente, el comentario y la primera comida.
+     * @esperado La dieta trae el paciente, el comentario y 18 comidas; el PDF existe, pesa más de 0 bytes,
+     * empieza con %PDF, tiene al menos una página y contiene el nombre del paciente, el comentario y
+     * las comidas.
      */
     @TC(id = "ITS-10", rf = "RF-08", modulo = "exportacion")
     @Test

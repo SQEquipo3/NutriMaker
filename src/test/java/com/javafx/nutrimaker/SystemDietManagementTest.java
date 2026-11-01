@@ -39,13 +39,19 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
     }
 
     /**
-     * @objetivo Verificar la edición de una dieta desde la interfaz y la persistencia de los cambios.
-     * @precondicion Usuario de prueba con 11 dietas existentes.
+     * @nombre Modificar una dieta desde la interfaz
+     * @objetivo Verificar la edición de una dieta desde la interfaz: el botón Editar abre el diálogo «Editar
+     * Dieta» (EditDietController) y, al pulsar Guardar, save() guarda los cambios con
+     * DietRepository.updateDietForUser() y cierra el diálogo (RF-06; URS_25).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Usuario con 11 dietas (dos páginas) y
+     * sesión iniciada.
      * @pasos 1.- En la tabla de dietas pulsar Editar en la primera fila;
      * 2.- Cambiar las calorías a 2100 y escribir un comentario nuevo;
      * 3.- Pulsar Guardar y esperar a que se cierre el editor;
      * 4.- Consultar en MySQL la fila de DIETA con ese id.
-     * @esperado Los valores nuevos persisten y el diálogo de edición se cierra.
+     * @esperado El diálogo se cierra y la dieta queda en MySQL con 2100 kcal y el comentario nuevo.
      */
     @Test
     @TC(id = "STS-07", rf = "RF-06", modulo = "modificar-dieta")
@@ -67,10 +73,16 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
     }
 
     /**
-     * @objetivo Validar eliminación con confirmación desde la tabla de dietas.
-     * @precondicion Usuario de prueba con 11 dietas existentes.
+     * @nombre Eliminar una dieta con confirmación
+     * @objetivo Verificar la eliminación de una dieta desde la interfaz: el botón Eliminar abre la confirmación
+     * (AskDialogController) y, al pulsar Aceptar, DietStorageController borra la dieta con
+     * DietRepository.deleteDiet() y la quita de la tabla (RF-07; URS_29: confirmar antes de
+     * eliminar).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Usuario con 11 dietas y sesión iniciada.
      * @pasos 1.- En la tabla de dietas pulsar Eliminar en la primera fila;
-     * 2.- Pulsar Aceptar en el diálogo de confirmación;
+     * 2.- Pulsar Aceptar (#acceptBtn) en el diálogo de confirmación;
      * 3.- Consultar en MySQL la fila de DIETA con ese id;
      * 4.- Revisar que la dieta ya no aparezca en la tabla.
      * @esperado La dieta desaparece de la tabla y de la base de datos.
@@ -92,13 +104,21 @@ public class SystemDietManagementTest extends NutriMakerGuiTest {
     }
 
     /**
-     * @objetivo Exportar desde la interfaz una dieta completa y comprobar el contenido del PDF.
-     * @precondicion Usuario con 11 dietas y una dieta generada con menú; carpeta Documents disponible.
+     * @nombre Exportar una dieta a PDF desde la interfaz
+     * @objetivo Verificar la exportación a PDF desde la interfaz: el botón PDF de una fila llama
+     * DietRepository.getDietObjectById() y PDFBuilder.exportPdf(), que escribe ~/Documents/diet.pdf
+     * con los datos de la dieta (RF-08; URS_31).
+     * @precondicion Prueba de interfaz con TestFX sobre la aplicación JavaFX real (clase base
+     * NutriMakerGuiTest) y la base MySQL nutrimaker_test; en CI corre bajo Xvfb. Los usuarios,
+     * pacientes y dietas que crea se borran al terminar. Usuario con 11 dietas, una de ellas
+     * generada con menú y comentario. Si ya existe ~/Documents/diet.pdf se respalda y se restaura
+     * al final.
      * @pasos 1.- Iniciar sesión y ubicar la dieta en la tabla (página 1 o 2);
      * 2.- Pulsar el botón PDF de esa fila;
      * 3.- Esperar a que se cree Documents/diet.pdf;
      * 4.- Extraer el texto de sus páginas.
-     * @esperado El PDF contiene nombre del paciente, comentario y al menos una comida.
+     * @esperado El PDF contiene el nombre del paciente, «Nombre:», el comentario y al menos una comida del
+     * menú.
      * @nota La inspección visual del formato puede registrarse adicionalmente como evidencia manual.
      */
     @Test
