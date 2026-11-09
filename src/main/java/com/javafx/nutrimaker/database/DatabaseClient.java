@@ -73,7 +73,7 @@ public class DatabaseClient {
             bind(s, args);
             s.executeUpdate();
             try (ResultSet keys = s.getGeneratedKeys()) {
-                if (!keys.next()) throw new SQLException("No se recibiÃ³ el ID del registro creado.");
+                if (!keys.next()) throw new SQLException("No se recibió el ID del registro creado.");
                 return keys.getInt(1);
             }
         }
@@ -100,7 +100,7 @@ public class DatabaseClient {
         return result.toString();
     }
     public static String one(JsonArray rows) throws IOException {
-        if (rows.isEmpty()) throw new IOException("No se encontrÃ³ el registro solicitado.");
+        if (rows.isEmpty()) throw new IOException("No se encontró el registro solicitado.");
         return rows.get(0).toString();
     }
 }
