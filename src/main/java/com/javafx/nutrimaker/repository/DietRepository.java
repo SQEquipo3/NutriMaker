@@ -191,8 +191,8 @@ public class DietRepository {
             Object value = entry.getValue();
             if ("FECHA_CREACION".equals(column) && value instanceof String date) {
                 try {
-                    // FECHA_CREACION guarda la hora local; con UTC, de noche quedaba con fecha de mañana.
-                    value = LocalDateTime.ofInstant(Instant.parse(date), ZoneId.systemDefault());
+                    // DatabaseClient convierte el Instant a la fecha y hora local al guardar.
+                    value = Instant.parse(date);
                 } catch (RuntimeException ex) {
                     // Permite también fechas SQL ya serializadas como yyyy-MM-dd HH:mm:ss.
                     value = LocalDateTime.parse(date.replace(' ', 'T'));
