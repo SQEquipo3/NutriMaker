@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS `comida`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `comida` (
-  `ID_COMIDA` int(11) NOT NULL,
+  `ID_COMIDA` int(11) NOT NULL AUTO_INCREMENT,
   `ID_DIETA` int(11) DEFAULT NULL,
   `DIA_SEMANA` tinyint(3) unsigned DEFAULT NULL,
   `HORA` time DEFAULT NULL,
@@ -71,7 +71,7 @@ DROP TABLE IF EXISTS `dieta`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `dieta` (
-  `ID_DIETA` int(11) NOT NULL,
+  `ID_DIETA` int(11) NOT NULL AUTO_INCREMENT,
   `ID_USUARIO` int(11) DEFAULT NULL,
   `ID_PACIENTE` int(11) DEFAULT NULL,
   `CALORIAS` decimal(9,4) DEFAULT NULL,
@@ -165,7 +165,7 @@ DROP TABLE IF EXISTS `paciente`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `paciente` (
-  `ID_PACIENTE` int(11) NOT NULL,
+  `ID_PACIENTE` int(11) NOT NULL AUTO_INCREMENT,
   `NOMBRE` varchar(50) DEFAULT NULL,
   `ALTURA` decimal(5,2) DEFAULT NULL,
   `PESO` decimal(5,2) DEFAULT NULL,
@@ -192,7 +192,7 @@ DROP TABLE IF EXISTS `usuario`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usuario` (
-  `ID_USUARIO` int(11) NOT NULL,
+  `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT,
   `PASSWORD` varchar(100) DEFAULT NULL,
   `CORREO` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`ID_USUARIO`),

@@ -203,21 +203,14 @@ public class DietRepository {
         return values;
     }
 
-    /** Inserta DIETA usando un ID explícito porque el esquema proporcionado no declara AUTO_INCREMENT. */
+    /** Inserta DIETA y devuelve el identificador generado por MySQL. */
     public static int insertDiet(Connection c, Map<String, Object> data) throws SQLException {
         Map<String, Object> values = validated(data);
         values.putIfAbsent("FECHA_CREACION", LocalDateTime.now());
-        int id = nextId(c, "DIETA", "ID_DIETA");
-        List<String> columns = new ArrayList<>();
-        columns.add("ID_DIETA");
-        columns.addAll(values.keySet());
-        List<Object> args = new ArrayList<>();
-        args.add(id);
-        args.addAll(values.values());
+        List<String> columns = new ArrayList<>(values.keySet());
         String sql = "INSERT INTO DIETA (" + String.join(",", columns) + ") VALUES (" +
                 String.join(",", Collections.nCopies(columns.size(), "?")) + ")";
-        execute(c, sql, args.toArray());
-        return id;
+        return insert(c, sql, values.values().toArray());
     }
 
     public String createDiet(Map<String, Object> data) throws IOException {
@@ -272,9 +265,8 @@ public class DietRepository {
             int sourcePatientId = source.get("patient_id").getAsInt();
             int targetPatientId;
             if (creating) {
-                targetPatientId = nextId(c, "PACIENTE", "ID_PACIENTE");
-                execute(c, "INSERT INTO PACIENTE (ID_PACIENTE,NOMBRE,EDAD,PESO,ALTURA) VALUES (?,?,?,?,?)",
-                        targetPatientId, newName.trim(), newAge, newWeight, newHeight);
+                targetPatientId = insert(c, "INSERT INTO PACIENTE (NOMBRE,EDAD,PESO,ALTURA) VALUES (?,?,?,?)",
+                        newName.trim(), newAge, newWeight, newHeight);
             } else {
                 if (existingPatientId == sourcePatientId)
                     throw new IOException("El paciente destinatario debe ser diferente del original.");
@@ -341,18 +333,18 @@ public class DietRepository {
             """, sourceMealId);
         if (sourceRows.isEmpty()) throw new IOException("No existe la comida de origen " + sourceMealId);
         JsonObject r = sourceRows.get(0).getAsJsonObject();
-        int newMealId = nextId(c, "COMIDA", "ID_COMIDA");
+
         Object hour = overrideTime != null ? Time.valueOf(overrideTime) :
                 (r.get("HORA").isJsonNull() ? null : Time.valueOf(r.get("HORA").getAsString()));
         Integer day = dayOfWeek != null ? dayOfWeek :
                 (r.has("DIA_SEMANA") && !r.get("DIA_SEMANA").isJsonNull()
                         ? r.get("DIA_SEMANA").getAsInt() : null);
-        execute(c, """
+        int newMealId = insert(c, """
             INSERT INTO COMIDA
-              (ID_COMIDA,ID_DIETA,HORA,DIA_SEMANA,TIPO_COMIDA,GRUPO_COMIDA,CALORIAS,GRASAS,
+              (ID_DIETA,HORA,DIA_SEMANA,TIPO_COMIDA,GRUPO_COMIDA,CALORIAS,GRASAS,
                COLESTEROL,SODIO,CARBOHIDRATOS,PROTEINA,CALCIO,HIERRO,NOMBRE_COMIDA)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """, newMealId, targetDietId, hour, day,
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """, targetDietId, hour, day,
                 nullableString(r, "TIPO_COMIDA"), nullableString(r, "GRUPO_COMIDA"),
                 nullableDouble(r, "CALORIAS"), nullableDouble(r, "GRASAS"),
                 nullableDouble(r, "COLESTEROL"), nullableDouble(r, "SODIO"),

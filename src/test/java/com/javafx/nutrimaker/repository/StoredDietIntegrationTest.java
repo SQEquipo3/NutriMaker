@@ -20,6 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static com.javafx.nutrimaker.database.DatabaseClient.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -241,6 +247,83 @@ public class StoredDietIntegrationTest {
         assertThrows(IOException.class, () -> diets.getDietByIdForUser(clone, userB));
     }
 
+    /** Issue #73: MySQL debe generar IDs únicos bajo inserciones concurrentes. */
+    @Test
+    void crearDietasSimultaneasConIdsUnicos() throws Exception {
+        assertTestDatabase();
+        int sourceMeal = findAvailableMeal();
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        Callable<int[]> taskA = () -> createConcurrentDiet(userA, patientA, sourceMeal, ready, start);
+        Callable<int[]> taskB = () -> createConcurrentDiet(userB, patientB, sourceMeal, ready, start);
+
+        Future<int[]> futureA = null;
+        Future<int[]> futureB = null;
+
+        try {
+            futureA = executor.submit(taskA);
+            futureB = executor.submit(taskB);
+
+            assertTrue(ready.await(10, TimeUnit.SECONDS),
+                    "Los dos hilos no estuvieron preparados a tiempo");
+            start.countDown();
+
+            int[] resultA = futureA.get(30, TimeUnit.SECONDS);
+            int[] resultB = futureB.get(30, TimeUnit.SECONDS);
+
+            assertNotEquals(resultA[0], resultB[0], "Las dietas comparten ID");
+            assertNotEquals(resultA[1], resultB[1], "Las comidas comparten ID");
+
+            assertEquals(patientA, count(
+                    "SELECT ID_PACIENTE AS n FROM DIETA WHERE ID_DIETA=?", resultA[0]));
+            assertEquals(patientB, count(
+                    "SELECT ID_PACIENTE AS n FROM DIETA WHERE ID_DIETA=?", resultB[0]));
+
+            assertEquals(1, count(
+                    "SELECT COUNT(*) AS n FROM COMIDA WHERE ID_COMIDA=? AND ID_DIETA=?",
+                    resultA[1], resultA[0]));
+            assertEquals(1, count(
+                    "SELECT COUNT(*) AS n FROM COMIDA WHERE ID_COMIDA=? AND ID_DIETA=?",
+                    resultB[1], resultB[0]));
+        } finally {
+            start.countDown();
+            executor.shutdown();
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+                assertTrue(executor.awaitTermination(30, TimeUnit.SECONDS),
+                        "Las operaciones concurrentes siguen activas; no es seguro limpiar los datos");
+            }
+        }
+    }
+
+    private int[] createConcurrentDiet(int userId, int patientId, int sourceMeal,
+                                       CountDownLatch ready, CountDownLatch start) throws Exception {
+        Map<String, Object> data = new HashMap<>();
+        data.put("user_id", userId);
+        data.put("patient_id", patientId);
+        data.put("calories", 2000);
+        data.put("meals_per_day", 3);
+        data.put("rest_day", "SUNDAY");
+        data.put("note", "QA-ISSUE73-" + UUID.randomUUID());
+
+        ready.countDown();
+        if (!start.await(10, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("No se recibió la señal de inicio");
+        }
+
+        int[] result = db.transaction(c -> {
+            int dietId = DietRepository.insertDiet(c, data);
+            int mealId = DietRepository.copyMealToDiet(c, sourceMeal, dietId, null);
+            return new int[] {dietId, mealId};
+        });
+
+        synchronized (createdDietIds) {
+            createdDietIds.add(result[0]);
+        }
+        return result;
+    }
     /** Usa una comida existente como origen sin modificar ni borrar el catálogo. */
     private int findAvailableMeal() throws Exception {
         return db.read(c -> {

@@ -1,7 +1,7 @@
 package com.javafx.nutrimaker.repository;
 
 import static com.javafx.nutrimaker.database.DatabaseClient.execute;
-import static com.javafx.nutrimaker.database.DatabaseClient.nextId;
+import static com.javafx.nutrimaker.database.DatabaseClient.insert;
 import static com.javafx.nutrimaker.database.DatabaseClient.query;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -90,8 +90,7 @@ public class UserRepositoryTest {
     private void sembrarUsuario(String correo, String contrasena) throws Exception {
         String hash = BCrypt.hashpw(contrasena, BCrypt.gensalt());
         db.transaction(c -> {
-            int id = nextId(c, "USUARIO", "ID_USUARIO");
-            return execute(c, "INSERT INTO USUARIO (ID_USUARIO,CORREO,PASSWORD) VALUES (?,?,?)", id, correo, hash);
+            return insert(c, "INSERT INTO USUARIO (CORREO,PASSWORD) VALUES (?,?)", correo, hash);
         });
     }
 
