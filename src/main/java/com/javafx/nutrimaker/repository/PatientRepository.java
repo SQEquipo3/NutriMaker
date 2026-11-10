@@ -24,10 +24,8 @@ public class PatientRepository {
 
     public int createPatientAndGetId(String name, int age, Double weight, Double height) throws IOException {
         return db.transaction(c -> {
-            int id = nextId(c, "PACIENTE", "ID_PACIENTE");
-            execute(c, "INSERT INTO PACIENTE (ID_PACIENTE,NOMBRE,EDAD,PESO,ALTURA) VALUES (?,?,?,?,?)",
-                    id, name, age, weight, height);
-            return id;
+            return insert(c, "INSERT INTO PACIENTE (NOMBRE,EDAD,PESO,ALTURA) VALUES (?,?,?,?)",
+                    name, age, weight, height);
         });
     }
 

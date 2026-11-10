@@ -18,9 +18,7 @@ public class UserRepository {
         try {
             String hash = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
             db.transaction(c -> {
-                int id = nextId(c, "USUARIO", "ID_USUARIO");
-                execute(c, "INSERT INTO USUARIO (ID_USUARIO,CORREO,PASSWORD) VALUES (?,?,?)", id, email, hash);
-                return id;
+                return insert(c, "INSERT INTO USUARIO (CORREO,PASSWORD) VALUES (?,?)", email, hash);
             });
             return true;
         } catch (IOException e) { e.printStackTrace(); return false; }
