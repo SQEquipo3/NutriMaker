@@ -22,13 +22,17 @@ class DatabaseClientIntegrationTest {
         String previousPassword = System.getProperty("nutrimaker.db.password");
 
         // Cargar las credenciales del archivo .env
-        Dotenv dotenv = Dotenv.load();
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        String url = dotenv.get("DB_URL",
+                "jdbc:mysql://localhost:3306/nutrimaker_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+        String user = dotenv.get("DB_USER", "nutri_test");
+        String password = dotenv.get("DB_PASSWORD", "");
 
         try {
             // Inyectar URL y credenciales de prueba de forma segura
-            System.setProperty("nutrimaker.db.url", dotenv.get("DB_URL"));
-            System.setProperty("nutrimaker.db.user", dotenv.get("DB_USER"));
-            System.setProperty("nutrimaker.db.password", dotenv.get("DB_PASSWORD"));
+        	System.setProperty("nutrimaker.db.url", url);
+        	System.setProperty("nutrimaker.db.user", user);
+        	System.setProperty("nutrimaker.db.password", password);
 
             try (Connection connection = new DatabaseClient().connect()) {
                 assertEquals("nutrimaker_test", connection.getCatalog());
