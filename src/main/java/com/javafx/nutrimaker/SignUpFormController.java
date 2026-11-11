@@ -99,40 +99,18 @@ public class SignUpFormController implements Initializable {
     }
     
     public void dialog(String warningMessage) throws IOException {
-        FXMLLoader loader =new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
-        Parent parent = loader.load();
-        DialogController dialog = loader.getController();
-        dialog.setText(warningMessage);
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+        DialogHelper.showMessage(warningMessage);
     }
-    
-    public void invalidCredentials() throws IOException{
-        Parent parent = FXMLLoader.load(getClass().getResource("CheckCredentials.fxml"));
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+
+    public void invalidCredentials() throws IOException {
+        DialogHelper.showFxml(DialogHelper.CREDENCIALES_INVALIDAS);
     }
-    private void emailExists() throws IOException{
-        Parent parent = FXMLLoader.load(getClass().getResource("EmailExists.fxml"));
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+
+    private void emailExists() throws IOException {
+        DialogHelper.showFxml(DialogHelper.CORREO_EXISTENTE);
     }
-    
-    private void registerSuccessful() throws IOException{
-        Parent parent = FXMLLoader.load(getClass().getResource("RegisterSuccessful.fxml"));
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+
+    private void registerSuccessful() throws IOException {
+        DialogHelper.showFxml(DialogHelper.REGISTRO_COMPLETADO);
     }
 }
