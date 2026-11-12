@@ -59,13 +59,26 @@ public class PDFBuilder {
     public PDFBuilder(Diet diet){}
     
     public static void exportPdf(Diet diet) throws FileNotFoundException, IOException, MalformedURLException, URISyntaxException{
-        generatePdf(diet);
+    	validateDiet(diet);
+    	generatePdf(diet);       
         if (!GraphicsEnvironment.isHeadless()
                 && Desktop.isDesktopSupported()
                 && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
             File archivoPdf = null;
             Desktop.getDesktop().open(archivoPdf);
         }    
+    }
+    
+    private static void validateDiet(Diet diet) {
+        if (diet == null) {
+            throw new IllegalArgumentException("No se pudo obtener la dieta para exportarla.");
+        }
+        if (diet.getPatient() == null) {
+            throw new IllegalArgumentException("La dieta no tiene un paciente asociado.");
+        }
+        if (diet.getMeals() == null) {
+            throw new IllegalArgumentException("La dieta no tiene comidas.");
+        }
     }
     
     private static void generatePdf(Diet diet) throws FileNotFoundException, MalformedURLException, IOException, URISyntaxException{         
