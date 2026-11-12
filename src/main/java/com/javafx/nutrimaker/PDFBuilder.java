@@ -55,20 +55,20 @@ public class PDFBuilder {
     private static final URL LOGO_PATH = PDFBuilder.class.getResource("images/nutrimakerLogo.png");
 
     public PDFBuilder(PDFBuilder pdf){}
-    
+
     public PDFBuilder(Diet diet){}
-    
+
     public static void exportPdf(Diet diet) throws FileNotFoundException, IOException, MalformedURLException, URISyntaxException{
-    	validateDiet(diet);
-    	generatePdf(diet);       
+	validateDiet(diet);
+	generatePdf(diet);
         if (!GraphicsEnvironment.isHeadless()
                 && Desktop.isDesktopSupported()
                 && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
             File archivoPdf = null;
             Desktop.getDesktop().open(archivoPdf);
-        }    
+        }
     }
-    
+
     private static void validateDiet(Diet diet) {
         if (diet == null) {
             throw new IllegalArgumentException("No se pudo obtener la dieta para exportarla.");
@@ -80,10 +80,10 @@ public class PDFBuilder {
             throw new IllegalArgumentException("La dieta no tiene comidas.");
         }
     }
-    
-    private static void generatePdf(Diet diet) throws FileNotFoundException, MalformedURLException, IOException, URISyntaxException{         
+
+    private static void generatePdf(Diet diet) throws FileNotFoundException, MalformedURLException, IOException, URISyntaxException{
         String fontPath = PDFBuilder.class.getResource("fonts/ComicShannsMonoNerdFont-Regular.otf").toURI().getPath();
-        
+
         ImageData imageData = ImageDataFactory.create(LOGO_PATH);
         Image img = new Image(imageData);
         img.scaleToFit(200,200);
@@ -102,9 +102,9 @@ public class PDFBuilder {
         doc.add(img);
         PdfFont font = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_EMBEDDED);
         doc.setFont(font);
-        doc.setFontSize(10);  
+        doc.setFontSize(10);
 
-        
+
         //Datos del paciente
         Paragraph namePara = new Paragraph("Nombre: " + diet.getPatient().getName()).setFontSize(12);
         Paragraph infoPatient = new Paragraph();
@@ -114,48 +114,48 @@ public class PDFBuilder {
         infoPatient.addTabStops(new TabStop(185, TabAlignment.LEFT));
         infoPatient.addTabStops(new TabStop(305, TabAlignment.LEFT));
 
-        infoPatient.add(new Tab()); 
+        infoPatient.add(new Tab());
         infoPatient.add("Edad: " + diet.getPatient().getAge());
         infoPatient.add(new Tab());
         infoPatient.add("Estatura: " + diet.getPatient().getHeight() + " cm");
-        infoPatient.add(new Tab());        
+        infoPatient.add(new Tab());
         infoPatient.add("Peso: " + diet.getPatient().getWeight() + " kg");
 
         for(Paragraph paragraph : new Paragraph[]{namePara,infoPatient}){
             doc.add(paragraph);
         }
-        
+
         doc.add(new LineSeparator(new SolidLine(1))); // linea separadora
 
         //Comentarios
         Paragraph comments = new Paragraph("Comentarios:");
-        
+
         doc.add(comments);
         doc.add(new Paragraph(diet.getNote()));
 
         doc.add(new LineSeparator(new SolidLine(1))); // linea separadora
 
         //Valores nutrimentales
-        
+
         Paragraph nutriValues = new Paragraph();
-       
+
         nutriValues.add("Calorias: " + diet.getCalories() + " Kcal    ");
         nutriValues.add("Proteinas: " + diet.getProtein() + " g    ");
         nutriValues.add("Grasas: " + diet.getFats() + " g    ");
         nutriValues.add("Calcio: " + diet.getCalcium() + " g    ");
         nutriValues.add("Sodio: " + diet.getSodium() + " g    ");
         nutriValues.add("Hierro: " + diet.getIron() + " g");
-        
+
         doc.add(nutriValues);
-        
+
         doc.add(new LineSeparator(new SolidLine(1))); // linea separadora
-                
+
         //settear dietas
         doc.add(setMeals(diet));
-        
+
         doc.close();
    }
-    
+
    private static Table setMeals(Diet diet) throws IOException, URISyntaxException{
         String fontBoldPath = PDFBuilder.class.getResource("fonts/ComicShannsMonoNerdFont-Bold.otf").toURI().getPath();
         PdfFont fontBold = PdfFontFactory.createFont(fontBoldPath, PdfEncodings.IDENTITY_H, EmbeddingStrategy.PREFER_EMBEDDED);

@@ -27,7 +27,7 @@ import javafx.stage.StageStyle;
 public class SignUpFormController implements Initializable {
     static final String REG_EXP_VER_EMAIL= "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,63}$";
     static final String REG_EXP_VER_PASS= ".{8,16}";
-    
+
     @FXML
     private TextField emailTextField;
     @FXML
@@ -44,23 +44,23 @@ public class SignUpFormController implements Initializable {
                 passwordTextField.getText().isEmpty() ||
                 confPasswordTextField.getText().isEmpty();
     }
-    
+
     private boolean checkPassword(String pass){
         return pass.matches(REG_EXP_VER_PASS);
     }
-    
+
     private boolean checkPassword() {
-        return comparePasswords() && checkPassword(passwordTextField.getText());                  
+        return comparePasswords() && checkPassword(passwordTextField.getText());
     }
-    
+
     private boolean checkEmail() {
         return emailTextField.getText().matches(REG_EXP_VER_EMAIL);
     }
-    
+
     private boolean comparePasswords(){
         return passwordTextField.getText().equals(confPasswordTextField.getText());
     }
-    
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setFadeAndScaleAnimation(loginButton);
@@ -68,8 +68,8 @@ public class SignUpFormController implements Initializable {
         setFadeAnimation(emailTextField);
         setFadeAnimation(passwordTextField);
         setFadeAnimation(confPasswordTextField);
-    }    
-      
+    }
+
     @FXML
     private void signUp(ActionEvent event) throws IOException {
         if(isEmpty()){
@@ -80,12 +80,15 @@ public class SignUpFormController implements Initializable {
             invalidCredentials();
             return;
         }
-        
-        if(!(new UserRepository().insertUser(emailTextField.getText(),passwordTextField.getText()))){
+
+        try {
+            new UserRepository().insertUser(emailTextField.getText(), passwordTextField.getText());
+            registerSuccessful();
+        } catch (com.javafx.nutrimaker.repository.DuplicateEmailException e) {
             emailExists();
-            return;
+        } catch (java.io.UncheckedIOException e) {
+            dialog("No fue posible completar el registro. Inténtalo más tarde.");
         }
-        registerSuccessful();  
     }
 
     @FXML
@@ -97,7 +100,7 @@ public class SignUpFormController implements Initializable {
         stage.setTitle("Login");
         stage.show();
     }
-    
+
     public void dialog(String warningMessage) throws IOException {
         DialogHelper.showMessage(warningMessage);
     }

@@ -3,9 +3,13 @@ package com.javafx.nutrimaker.repository;
 import com.javafx.nutrimaker.database.DatabaseClient;
 import com.google.gson.JsonArray;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static com.javafx.nutrimaker.database.DatabaseClient.*;
 
 public class PatientRepository {
+    private static final Logger logger = Logger.getLogger(PatientRepository.class.getName());
     private final DatabaseClient db = new DatabaseClient();
 
     private static final String SELECT_PATIENT = """
@@ -31,7 +35,7 @@ public class PatientRepository {
 
     public boolean createPatient(String name, int age, Double weight, Double height) {
         try { createPatientAndGetId(name, age, weight, height); return true; }
-        catch (IOException e) { e.printStackTrace(); return false; }
+        catch (IOException e) { logger.log(Level.SEVERE, "Error al registrar paciente", e); throw new UncheckedIOException("No fue posible registrar el paciente", e); }
     }
 
     public String updatePatient(int id, String name, int age, Double weight, Double height) throws IOException {
