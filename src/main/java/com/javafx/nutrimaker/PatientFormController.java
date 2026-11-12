@@ -72,15 +72,7 @@ public class PatientFormController implements Initializable {
     
     //1 vacias, 2 formatos, 
     public void dialog(String warningMessage) throws IOException {
-        FXMLLoader loader =new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
-        Parent parent = loader.load();
-        DialogController dialog = loader.getController();
-        dialog.setText(warningMessage);
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+        DialogHelper.showMessage(warningMessage);
     }
         
     public boolean checkInputs() throws IOException {

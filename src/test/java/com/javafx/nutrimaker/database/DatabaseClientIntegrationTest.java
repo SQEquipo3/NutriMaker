@@ -1,6 +1,7 @@
 package com.javafx.nutrimaker.database;
 
 import com.google.gson.JsonObject;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -15,14 +16,23 @@ class DatabaseClientIntegrationTest {
 
     @Test
     void shouldPreserveLocalDateTimeNearMidnight() throws Exception {
+        // Guardar el estado actual
         String previousUrl = System.getProperty("nutrimaker.db.url");
+        String previousUser = System.getProperty("nutrimaker.db.user");
+        String previousPassword = System.getProperty("nutrimaker.db.password");
 
-        String testUrl =
-                "jdbc:mysql://localhost:3306/nutrimaker_test"
-                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+        // Cargar las credenciales del archivo .env
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        String url = dotenv.get("DB_URL",
+                "jdbc:mysql://localhost:3306/nutrimaker_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+        String user = dotenv.get("DB_USER", "nutri_test");
+        String password = dotenv.get("DB_PASSWORD", "");
 
         try {
-            System.setProperty("nutrimaker.db.url", testUrl);
+            // Inyectar URL y credenciales de prueba de forma segura
+        	System.setProperty("nutrimaker.db.url", url);
+        	System.setProperty("nutrimaker.db.user", user);
+        	System.setProperty("nutrimaker.db.password", password);
 
             try (Connection connection = new DatabaseClient().connect()) {
                 assertEquals("nutrimaker_test", connection.getCatalog());
@@ -73,11 +83,15 @@ class DatabaseClientIntegrationTest {
                 );
             }
         } finally {
-            if (previousUrl == null) {
-                System.clearProperty("nutrimaker.db.url");
-            } else {
-                System.setProperty("nutrimaker.db.url", previousUrl);
-            }
+            // Restaurar las propiedades originales
+            if (previousUrl == null) System.clearProperty("nutrimaker.db.url");
+            else System.setProperty("nutrimaker.db.url", previousUrl);
+
+            if (previousUser == null) System.clearProperty("nutrimaker.db.user");
+            else System.setProperty("nutrimaker.db.user", previousUser);
+
+            if (previousPassword == null) System.clearProperty("nutrimaker.db.password");
+            else System.setProperty("nutrimaker.db.password", previousPassword);
         }
     }
 }

@@ -61,15 +61,7 @@ public class CreateDietController implements Initializable {
 
     @FXML
     public void dialog(String warningMessage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
-        Parent parent = loader.load();
-        DialogController dialog = loader.getController();
-        dialog.setText(warningMessage);
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+        DialogHelper.showMessage(warningMessage);
     }
 
     private boolean checkInputs() throws IOException {

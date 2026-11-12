@@ -8,7 +8,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.10.2</junit.version>
-        <maven.compiler.release>23</maven.compiler.release>
 
         <!-- Versión de Java -->
         <maven.compiler.release>23</maven.compiler.release>
@@ -122,6 +121,12 @@
             <version>4.0.18</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -214,7 +219,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>        
+            </plugin>
         </plugins>
     </build>
 </project>

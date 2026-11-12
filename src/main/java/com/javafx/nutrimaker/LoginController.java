@@ -76,35 +76,11 @@ public class LoginController implements Initializable {
     }
     
     public void dialog(String warningMessage) throws IOException {
-        URL fxml = getClass().getResource("EmptyInputs.fxml");
-
-        if (fxml == null) {
-            throw new IOException(
-                "No se encontró EmptyInputs.fxml. Revisa su ubicación en resources."
-            );
-        }
-
-        Parent parent = FXMLLoader.load(fxml);
-    
-        FXMLLoader loader =new FXMLLoader(getClass().getResource("DialogInputs.fxml"));
-
-        DialogController dialog = loader.getController();
-        dialog.setText(warningMessage);
-        Scene scene = new Scene(parent);
-
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+        DialogHelper.showMessage(warningMessage);
     }
-    
-    public void invalidCredentials() throws IOException{
-        Parent parent = FXMLLoader.load(getClass().getResource("checkCredentials.fxml"));
-        Scene scene = new Scene(parent);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+
+    public void invalidCredentials() throws IOException {
+        DialogHelper.showFxml(DialogHelper.CREDENCIALES_INVALIDAS);
     }
     
     @FXML
