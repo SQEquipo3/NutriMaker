@@ -40,8 +40,8 @@ public class SignUpFormController implements Initializable {
     private Button loginButton;
 
     private boolean isEmpty(){
-        return emailTextField.getText().isEmpty() &&
-                passwordTextField.getText().isEmpty() &&
+        return emailTextField.getText().isEmpty() ||
+                passwordTextField.getText().isEmpty() ||
                 confPasswordTextField.getText().isEmpty();
     }
 
