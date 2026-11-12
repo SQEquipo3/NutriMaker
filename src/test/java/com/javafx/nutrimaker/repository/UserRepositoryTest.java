@@ -1,5 +1,7 @@
 package com.javafx.nutrimaker.repository;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import static com.javafx.nutrimaker.database.DatabaseClient.execute;
 import static com.javafx.nutrimaker.database.DatabaseClient.insert;
 import static com.javafx.nutrimaker.database.DatabaseClient.query;
@@ -169,8 +171,8 @@ public class UserRepositoryTest {
     /**
      * @nombre Rechazar un correo duplicado en el registro
      * @objetivo Verificar que no se registren dos usuarios con el mismo correo: UserRepository.insertUser()
-     * debe devolver false (sin lanzar excepción) cuando el correo ya existe, y no debe alterar al
-     * usuario original. Con ese false, signUp() muestra «el correo ya existe» (RF-02; URS_11: correo
+     * debe lanzar DuplicateEmailException cuando el correo ya existe, y no debe alterar al
+     * usuario original. Con esa excepción, signUp() muestra «el correo ya existe» (RF-02; URS_11: correo
      * único).
      * @precondicion Base MySQL nutrimaker_test cargada desde NutrimakerDB/nutrimaker.sql; la prueba verifica
      * antes que la conexión apunta a esa base y nunca a la de desarrollo. Los registros que crea
@@ -178,7 +180,7 @@ public class UserRepositoryTest {
      * @pasos 1.- Llamar insertUser(correo, "Otra123456") con el mismo correo;
      * 2.- Contar las filas de USUARIO con ese correo;
      * 3.- Llamar verifyPasswordByEmail con la contraseña original y con la del intento duplicado.
-     * @esperado insertUser devuelve false; sigue habiendo una sola fila; solo la contraseña original autentica.
+     * @esperado insertUser lanza DuplicateEmailException; sigue habiendo una sola fila; solo la contraseña original autentica.
      * @nota El duplicado lo rechaza la restricción UNIQUE (UNIQ_CORREO) de la tabla USUARIO.
      */
     @TC(id = "ITS-03", rf = "RF-02", modulo = "usuarios")
@@ -187,7 +189,7 @@ public class UserRepositoryTest {
         String correo = correoNuevo("its03");
         sembrarUsuario(correo, "Abc12345");
 
-        assertFalse(users.insertUser(correo, "Otra123456"), "el duplicado se rechaza");
+        assertThrows(DuplicateEmailException.class, () -> users.insertUser(correo, "Otra123456"), "el duplicado debe producir una excepción específica");
 
         assertEquals(1, filasDe(correo).size(), "sigue habiendo una sola fila");
         assertTrue(users.verifyPasswordByEmail(correo, "Abc12345"), "la contraseña original sigue válida");

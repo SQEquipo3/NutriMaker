@@ -89,14 +89,31 @@ public class LoginController implements Initializable {
             dialog("No se admite texto vacio");
             return;
         }
-        if((!checkPassword() || !checkEmail()) || !verifyCredentials()){
+        if (!checkPassword() || !checkEmail()) {
             invalidCredentials();
             return;
         }
-        
-        User.getUser().setEmail(emailTextField.getText());
-        User.getUser().setPassword(passwordTextField.getText());
-        User.getUser().setId(new UserRepository().getIdByEmail(emailTextField.getText()));
+
+        try {
+            if (!verifyCredentials()) {
+                invalidCredentials();
+                return;
+            }
+
+            Integer userId = new UserRepository().getIdByEmail(emailTextField.getText());
+            if (userId == null) {
+                dialog("No fue posible identificar al usuario.");
+                return;
+            }
+
+            User.getUser().setEmail(emailTextField.getText());
+            User.getUser().setPassword(passwordTextField.getText());
+            User.getUser().setId(userId);
+        } catch (java.io.UncheckedIOException | IllegalStateException e) {
+            dialog("No fue posible conectar con el servicio. Inténtalo más tarde.");
+            return;
+        }
+
         dietStorage(event);  
     }
 
