@@ -1,15 +1,16 @@
 package com.javafx.nutrimaker.repository;
 
-import com.javafx.nutrimaker.database.DatabaseClient;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.javafx.nutrimaker.database.DatabaseClient;
+import com.javafx.nutrimaker.models.Patient;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 import static com.javafx.nutrimaker.database.DatabaseClient.*;
 
 public class PatientRepository {
-    private static final Logger logger = Logger.getLogger(PatientRepository.class.getName());
     private final DatabaseClient db = new DatabaseClient();
 
     private static final String SELECT_PATIENT = """
@@ -18,12 +19,17 @@ public class PatientRepository {
         FROM PACIENTE
         """;
 
-    public String getAllPatients() throws IOException {
-        return db.read(c -> items(query(c, SELECT_PATIENT + " ORDER BY ID_PACIENTE")));
+    public List<Patient> getAllPatients() throws IOException {
+        JsonArray rows = db.read(c -> query(c, SELECT_PATIENT + " ORDER BY ID_PACIENTE"));
+        List<Patient> patients = new ArrayList<>();
+        for (JsonElement e : rows) patients.add(toPatient(e.getAsJsonObject()));
+        return patients;
     }
 
-    public String getPatientById(int id) throws IOException {
-        return db.read(c -> one(query(c, SELECT_PATIENT + " WHERE ID_PACIENTE=?", id)));
+    public Patient getPatientById(int id) throws IOException {
+        JsonArray rows = db.read(c -> query(c, SELECT_PATIENT + " WHERE ID_PACIENTE=?", id));
+        if (rows.isEmpty()) throw new IOException("No se encontró el registro solicitado.");
+        return toPatient(rows.get(0).getAsJsonObject());
     }
 
     public int createPatientAndGetId(String name, int age, Double weight, Double height) throws IOException {
@@ -35,24 +41,31 @@ public class PatientRepository {
 
     public boolean createPatient(String name, int age, Double weight, Double height) {
         try { createPatientAndGetId(name, age, weight, height); return true; }
-        catch (IOException e) { logger.log(Level.SEVERE, "Error al registrar paciente", e); throw new UncheckedIOException("No fue posible registrar el paciente", e); }
+        catch (IOException e) { e.printStackTrace(); return false; }
     }
 
-    public String updatePatient(int id, String name, int age, Double weight, Double height) throws IOException {
+    public Patient updatePatient(int id, String name, int age, Double weight, Double height) throws IOException {
         return db.read(c -> {
             int changed = execute(c,
                     "UPDATE PACIENTE SET NOMBRE=?,EDAD=?,PESO=?,ALTURA=? WHERE ID_PACIENTE=?",
                     name, age, weight, height, id);
             if (changed == 0) throw new IOException("No existe el paciente " + id);
-            return one(query(c, SELECT_PATIENT + " WHERE ID_PACIENTE=?", id));
+            JsonArray rows = query(c, SELECT_PATIENT + " WHERE ID_PACIENTE=?", id);
+            return toPatient(rows.get(0).getAsJsonObject());
         });
     }
 
-    public String deletePatient(int id) throws IOException {
-        return db.transaction(c -> {
-            // La eliminación de un paciente con dietas relacionadas puede estar bloqueada por claves foráneas.
-            int deleted = execute(c, "DELETE FROM PACIENTE WHERE ID_PACIENTE=?", id);
-            return "{\"deleted\":" + deleted + "}";
-        });
+    /** Devuelve cuántos pacientes se borraron. Puede estar bloqueado por claves foráneas. */
+    public int deletePatient(int id) throws IOException {
+        return db.transaction(c -> execute(c, "DELETE FROM PACIENTE WHERE ID_PACIENTE=?", id));
+    }
+
+    private static Patient toPatient(JsonObject r) {
+        return new Patient(
+                r.get("name").getAsString(),
+                r.get("age").isJsonNull() ? 0 : r.get("age").getAsInt(),
+                r.get("weight").isJsonNull() ? null : r.get("weight").getAsDouble(),
+                r.get("height").isJsonNull() ? null : r.get("height").getAsDouble(),
+                r.get("patient_id").getAsInt());
     }
 }

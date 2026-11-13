@@ -9,6 +9,11 @@ import java.io.UncheckedIOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.javafx.nutrimaker.models.User;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.javafx.nutrimaker.database.DatabaseClient.*;
 
@@ -16,9 +21,15 @@ public class UserRepository {
     private static final Logger logger = Logger.getLogger(UserRepository.class.getName());
     private final DatabaseClient db = new DatabaseClient();
 
-    public String getAllUsers() throws IOException {
-        return db.read(c -> items(query(c,
-                "SELECT ID_USUARIO AS user_id, CORREO AS email FROM USUARIO ORDER BY ID_USUARIO")));
+    public List<User> getAllUsers() throws IOException {
+        JsonArray rows = db.read(c -> query(c,
+                "SELECT ID_USUARIO AS user_id, CORREO AS email FROM USUARIO ORDER BY ID_USUARIO"));
+        List<User> users = new ArrayList<>();
+        for (JsonElement e : rows) {
+            JsonObject r = e.getAsJsonObject();
+            users.add(new User(r.get("email").getAsString(), null, r.get("user_id").getAsInt()));
+        }
+        return users;
     }
 
     public boolean insertUser(String email, String plainPassword) {
