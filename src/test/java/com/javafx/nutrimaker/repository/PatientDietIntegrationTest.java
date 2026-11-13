@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.javafx.nutrimaker.database.DatabaseClient;
 import com.javafx.nutrimaker.qa.TC;
+import com.javafx.nutrimaker.models.DietDetails;
+import com.javafx.nutrimaker.models.Patient;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -81,12 +83,12 @@ public class PatientDietIntegrationTest {
         String nombre = "QA-ITS04-" + UUID.randomUUID().toString().substring(0, 8);
         patientId = crearPaciente(nombre);
         assertTrue(patientId > 0, "La base debe devolver un ID válido");
-        JsonObject paciente = JsonParser.parseString(patients.getPatientById(patientId)).getAsJsonObject();
-        assertEquals(patientId.intValue(), paciente.get("patient_id").getAsInt());
-        assertEquals(nombre, paciente.get("name").getAsString());
-        assertEquals(29, paciente.get("age").getAsInt());
-        assertEquals(68.5, paciente.get("weight").getAsDouble(), 0.01);
-        assertEquals(172.0, paciente.get("height").getAsDouble(), 0.01);
+        Patient paciente = patients.getPatientById(patientId);
+        assertEquals(patientId.intValue(), paciente.getPatientId());
+        assertEquals(nombre, paciente.getName());
+        assertEquals(29, paciente.getAge());
+        assertEquals(68.5, paciente.getWeight().doubleValue(), 0.01);
+        assertEquals(172.0, paciente.getHeight().doubleValue(), 0.01);
     }
 
     // ==========================================
@@ -136,13 +138,13 @@ public class PatientDietIntegrationTest {
         int dietaId = db.read(c -> query(c,
                 "SELECT ID_DIETA AS id FROM DIETA WHERE ID_USUARIO=? AND COMENTARIO=?",
                 userId, marca).get(0).getAsJsonObject().get("id").getAsInt());
-        JsonObject dieta = JsonParser.parseString(new DietRepository().getDietById(dietaId)).getAsJsonObject();
-        assertEquals(userId.intValue(), dieta.get("user_id").getAsInt());
-        assertEquals(patientId.intValue(), dieta.get("patient_id").getAsInt(),
+        DietDetails dieta = new DietRepository().getDietById(dietaId);
+        assertEquals(userId.intValue(), dieta.userId());
+        assertEquals(patientId.intValue(), dieta.patientId(),
                 "La dieta se asignó a otro paciente (riesgo #19)");
-        assertNotEquals(otherPatientId.intValue(), dieta.get("patient_id").getAsInt());
-        assertEquals(3, dieta.get("meals_per_day").getAsInt());
-        assertEquals("SUNDAY", dieta.get("rest_day").getAsString());
+        assertNotEquals(otherPatientId.intValue(), dieta.patientId());
+        assertEquals(3, dieta.mealsPerDay().intValue());
+        assertEquals("SUNDAY", dieta.restDay());
 
         assertEquals(18, numero("SELECT COUNT(*) AS n FROM COMIDA WHERE ID_DIETA=?", dietaId),
                 "Deben existir tres comidas por cada uno de los seis días activos");

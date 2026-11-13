@@ -156,8 +156,7 @@ public abstract class NutriMakerGuiTest {
             data.put("meals_per_day", 3);
             data.put("rest_day", "SUNDAY");
             data.put("note", "QA-UI dieta " + (i + 1));
-            ids.add(JsonParser.parseString(new DietRepository().createDiet(data))
-                    .getAsJsonObject().get("diet_id").getAsInt());
+            ids.add(new DietRepository().createDiet(data).dietId());
         }
         return ids;
     }

@@ -1,8 +1,7 @@
 package com.javafx.nutrimaker;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.javafx.nutrimaker.models.DietDetails;
+import com.javafx.nutrimaker.models.Patient;
 import com.javafx.nutrimaker.repository.PatientRepository;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
@@ -11,8 +10,6 @@ import javafx.scene.control.ButtonType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import com.google.gson.JsonParser;
-import com.javafx.nutrimaker.models.User;
 import com.javafx.nutrimaker.repository.DietRepository;
 import java.io.IOException;
 import java.net.URL;
@@ -95,24 +92,20 @@ public class EditDietController implements Initializable {
     }
 
     public void setDietId(int id) throws IOException {
-    	if (!Session.isActive()) throw new IOException("No hay sesión activa");
+        if (!Session.isActive()) throw new IOException("No hay sesión activa");
         this.dietId = id;
-        JsonObject data = JsonParser.parseString(
-            repository.getDietByIdForUser(id, Session.requireUserId())
-        ).getAsJsonObject();
+        DietDetails data = repository.getDietByIdForUser(id, Session.requireUserId());
         dietLabel.setText("Editar dieta #" + id);
-        originalPatientId = data.get("patient_id").getAsInt();
-        initialRestDay = data.has("rest_day") && !data.get("rest_day").isJsonNull()
-            ? data.get("rest_day").getAsString() : null;
+        originalPatientId = data.patientId();
+        initialRestDay = data.restDay();
         loadPatients();
-        calTextField.setText(data.get("calories").isJsonNull() ? "" : data.get("calories").getAsString());
-        commentTextField.setText(data.get("note").isJsonNull() ? "" : data.get("note").getAsString());
-        if (!data.get("meals_per_day").isJsonNull())
-            quantityFoodDistribution.setValue(data.get("meals_per_day").getAsString());
-        if (!data.get("rest_day").isJsonNull()) {
-            String day = data.get("rest_day").getAsString();
+        calTextField.setText(data.calories() == null ? "" : data.calories().toString());
+        commentTextField.setText(data.note() == null ? "" : data.note());
+        if (data.mealsPerDay() != null)
+            quantityFoodDistribution.setValue(String.valueOf(data.mealsPerDay()));
+        if (data.restDay() != null) {
             for (int i = 0; i < DAYS.length; i++) {
-                if (DAYS[i].equalsIgnoreCase(day)) {
+                if (DAYS[i].equalsIgnoreCase(data.restDay())) {
                     selectFreeDay.setValue(LABELS[i]);
                     break;
                 }
@@ -125,12 +118,12 @@ public class EditDietController implements Initializable {
         final int id, age;
         final String name;
         final double weight, height;
-        PatientChoice(JsonObject row) {
-            id = row.get("patient_id").getAsInt();
-            name = row.get("name").getAsString();
-            age = row.get("age").isJsonNull() ? 0 : row.get("age").getAsInt();
-            weight = row.get("weight").isJsonNull() ? 0 : row.get("weight").getAsDouble();
-            height = row.get("height").isJsonNull() ? 0 : row.get("height").getAsDouble();
+        PatientChoice(Patient p) {
+            id = p.getPatientId();
+            name = p.getName();
+            age = p.getAge();
+            weight = p.getWeight() == null ? 0 : p.getWeight();
+            height = p.getHeight() == null ? 0 : p.getHeight();
         }
         @Override public String toString() { return name + " (#" + id + ")"; }
     }
@@ -145,10 +138,8 @@ public class EditDietController implements Initializable {
 
     private void loadPatients() throws IOException {
         patients.clear();
-        JsonArray rows = JsonParser.parseString(patientRepository.getAllPatients())
-            .getAsJsonObject().getAsJsonArray("items");
-        for (JsonElement e : rows) {
-            PatientChoice p = new PatientChoice(e.getAsJsonObject());
+        for (Patient row : patientRepository.getAllPatients()) {
+            PatientChoice p = new PatientChoice(row);
             if (p.id == originalPatientId) originalPatient = p;
             else patients.add(p);
         }

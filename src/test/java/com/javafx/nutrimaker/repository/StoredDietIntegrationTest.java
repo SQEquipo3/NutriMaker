@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.javafx.nutrimaker.database.DatabaseClient;
 import com.javafx.nutrimaker.models.DietSummary;
 import com.javafx.nutrimaker.qa.TC;
+import com.javafx.nutrimaker.models.DietDetails;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -102,8 +103,7 @@ public class StoredDietIntegrationTest {
         data.put("meals_per_day", 3);
         data.put("rest_day", "SUNDAY");
         data.put("note", "QA-ITS33-" + UUID.randomUUID());
-        JsonObject row = JsonParser.parseString(diets.createDiet(data)).getAsJsonObject();
-        int id = row.get("diet_id").getAsInt();
+        int id = diets.createDiet(data).dietId();
         createdDietIds.add(id);
         return id;
     }
@@ -190,8 +190,8 @@ public class StoredDietIntegrationTest {
         int copiedMeal = db.transaction(c -> DietRepository.copyMealToDiet(c, sourceMeal, target, null));
         int copiedIngredients = count("SELECT COUNT(*) AS n FROM INGREDIENTE_COMIDA WHERE ID_COMIDA=?", copiedMeal);
 
-        JsonObject result = JsonParser.parseString(diets.deleteDiet(target)).getAsJsonObject();
-        assertEquals(1, result.get("deleted").getAsInt());
+        int deleted = diets.deleteDiet(target);
+        assertEquals(1, deleted);
         assertEquals(0, count("SELECT COUNT(*) AS n FROM DIETA WHERE ID_DIETA=?", target));
         assertEquals(0, count("SELECT COUNT(*) AS n FROM COMIDA WHERE ID_DIETA=?", target));
         assertEquals(0, count("SELECT COUNT(*) AS n FROM INGREDIENTE_COMIDA WHERE ID_COMIDA=?", copiedMeal),
@@ -229,8 +229,8 @@ public class StoredDietIntegrationTest {
         int sourceMeal = findAvailableMeal();
         db.transaction(c -> DietRepository.copyMealToDiet(c, sourceMeal, source, null));
 
-        JsonObject visible = JsonParser.parseString(diets.getDietByIdForUser(source, userA)).getAsJsonObject();
-        assertEquals(userA, visible.get("user_id").getAsInt());
+        DietDetails visible = diets.getDietByIdForUser(source, userA);
+        assertEquals(userA, visible.userId());
         assertThrows(IOException.class, () -> diets.getDietByIdForUser(source, userB),
                 "Un usuario no debe consultar dietas ajenas");
         assertThrows(IOException.class,
@@ -239,9 +239,9 @@ public class StoredDietIntegrationTest {
 
         int clone = diets.cloneDietForPatient(source, userA, targetPatient, null, null, null, null);
         createdDietIds.add(clone);
-        JsonObject cloned = JsonParser.parseString(diets.getDietByIdForUser(clone, userA)).getAsJsonObject();
-        assertEquals(userA, cloned.get("user_id").getAsInt());
-        assertEquals(targetPatient, cloned.get("patient_id").getAsInt());
+        DietDetails cloned = diets.getDietByIdForUser(clone, userA);
+        assertEquals(userA, cloned.userId());
+        assertEquals(targetPatient, cloned.patientId());
         assertEquals(count("SELECT COUNT(*) AS n FROM COMIDA WHERE ID_DIETA=?", source),
                      count("SELECT COUNT(*) AS n FROM COMIDA WHERE ID_DIETA=?", clone));
         assertThrows(IOException.class, () -> diets.getDietByIdForUser(clone, userB));

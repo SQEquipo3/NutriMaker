@@ -11,11 +11,13 @@ import com.javafx.nutrimaker.PDFBuilder;
 import com.javafx.nutrimaker.database.DatabaseClient;
 import com.javafx.nutrimaker.models.Diet;
 import com.javafx.nutrimaker.qa.TC;
+import com.javafx.nutrimaker.models.DietDetails;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -135,10 +137,10 @@ public class EditDietAndPdfIntegrationTest {
         changes.put("meals_per_day", 3);
         diets.updateDietForUser(dietId, userId, changes);
 
-        JsonObject diet = JsonParser.parseString(diets.getDietByIdForUser(dietId, userId)).getAsJsonObject();
-        assertEquals("Comentario editado por QA", diet.get("note").getAsString());
-        assertEquals(2100.0, diet.get("calories").getAsDouble(), 0.001);
-        assertEquals("SATURDAY", diet.get("rest_day").getAsString());
+        DietDetails diet = diets.getDietByIdForUser(dietId, userId);
+        assertEquals("Comentario editado por QA", diet.note());
+        assertEquals(2100.0, diet.calories().doubleValue(), 0.001);
+        assertEquals("SATURDAY", diet.restDay());
 
         Map<Integer, String> after = mealsOf(dietId);
         assertEquals(before.keySet(), after.keySet(), "La edición no debe crear ni borrar comidas");
@@ -154,9 +156,9 @@ public class EditDietAndPdfIntegrationTest {
         Map<String, Object> mealsChange = Map.of("meals_per_day", 4);
         assertThrows(IOException.class, () -> diets.updateDietForUser(dietId, userId, mealsChange),
                 "Cambiar la cantidad de comidas exige regenerar la dieta");
-        JsonObject unchanged = JsonParser.parseString(diets.getDietByIdForUser(dietId, userId)).getAsJsonObject();
-        assertEquals("Comentario editado por QA", unchanged.get("note").getAsString());
-        assertEquals(3, unchanged.get("meals_per_day").getAsInt());
+        DietDetails unchanged = diets.getDietByIdForUser(dietId, userId);
+        assertEquals("Comentario editado por QA", unchanged.note());
+        assertEquals(3, unchanged.mealsPerDay().intValue());
         assertEquals(after, mealsOf(dietId));
     }
 

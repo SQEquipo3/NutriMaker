@@ -6,6 +6,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -83,17 +84,18 @@ public class DietRepository {
         return rows.isEmpty() ? 0 : rows.get(0).getAsJsonObject().get("total").getAsInt();
     }
 
-    public String getDietById(int id) throws IOException {
-        return db.read(c -> one(query(c, "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id)));
+    public DietDetails getDietById(int id) throws IOException {
+        return db.read(c -> firstDiet(query(c,
+                "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id)));
     }
 
     /** Consulta restringida al usuario que inició sesión. */
-    public String getDietByIdForUser(int dietId, int userId) throws IOException {
+    public DietDetails getDietByIdForUser(int dietId, int userId) throws IOException {
         return db.read(c -> {
             JsonArray rows = query(c, "SELECT " + DIET_COLUMNS +
                 " FROM DIETA WHERE ID_DIETA=? AND ID_USUARIO=?", dietId, userId);
             if (rows.isEmpty()) throw new IOException("Dieta no encontrada o sin permiso para editarla.");
-            return one(rows);
+            return toDietDetails(rows.get(0).getAsJsonObject());
         });
     }
 
@@ -172,13 +174,13 @@ public class DietRepository {
         };
     }
 
-    public String getDietsByUserId(int id) throws IOException {
-        return db.read(c -> items(query(c,
+    public List<DietDetails> getDietsByUserId(int id) throws IOException {
+        return db.read(c -> allDiets(query(c,
                 "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_USUARIO=? ORDER BY ID_DIETA DESC", id)));
     }
 
-    public String getDietsByPatientId(int id) throws IOException {
-        return db.read(c -> items(query(c,
+    public List<DietDetails> getDietsByPatientId(int id) throws IOException {
+        return db.read(c -> allDiets(query(c,
                 "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_PACIENTE=? ORDER BY ID_DIETA DESC", id)));
     }
 
@@ -213,14 +215,14 @@ public class DietRepository {
         return insert(c, sql, values.values().toArray());
     }
 
-    public String createDiet(Map<String, Object> data) throws IOException {
+    public DietDetails createDiet(Map<String, Object> data) throws IOException {
         return db.transaction(c -> {
             int id = insertDiet(c, data);
-            return one(query(c, "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id));
+            return firstDiet(query(c, "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id));
         });
     }
 
-    public String updateDiet(int id, Map<String, Object> data) throws IOException {
+    public DietDetails updateDiet(int id, Map<String, Object> data) throws IOException {
         Map<String, Object> values = validated(data);
         List<Object> args = new ArrayList<>(values.values());
         args.add(id);
@@ -228,16 +230,16 @@ public class DietRepository {
         return db.transaction(c -> {
             int changed = execute(c, "UPDATE DIETA SET " + assignments + " WHERE ID_DIETA=?", args.toArray());
             if (changed == 0) throw new IOException("No existe la dieta " + id);
-            return one(query(c, "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id));
+            return firstDiet(query(c, "SELECT " + DIET_COLUMNS + " FROM DIETA WHERE ID_DIETA=?", id));
         });
     }
 
-    public String deleteDiet(int id) throws IOException {
+    /** Devuelve cuántas dietas se borraron (0 o 1). */
+    public int deleteDiet(int id) throws IOException {
         return db.transaction(c -> {
             execute(c, "DELETE FROM INGREDIENTE_COMIDA WHERE ID_COMIDA IN (SELECT ID_COMIDA FROM COMIDA WHERE ID_DIETA=?)", id);
             execute(c, "DELETE FROM COMIDA WHERE ID_DIETA=?", id);
-            int deleted = execute(c, "DELETE FROM DIETA WHERE ID_DIETA=?", id);
-            return "{\"deleted\":" + deleted + "}";
+            return execute(c, "DELETE FROM DIETA WHERE ID_DIETA=?", id);
         });
     }
 
@@ -363,9 +365,47 @@ public class DietRepository {
     private static Double nullableDouble(JsonObject row, String key) {
         return !row.has(key) || row.get(key).isJsonNull() ? null : row.get(key).getAsDouble();
     }
+    private static BigDecimal nullableDecimal(JsonObject row, String key) {
+        return !row.has(key) || row.get(key).isJsonNull() ? null : row.get(key).getAsBigDecimal();
+    }
+    private static Integer nullableInt(JsonObject row, String key) {
+        return !row.has(key) || row.get(key).isJsonNull() ? null : row.get(key).getAsInt();
+    }
+
+    private static DietDetails firstDiet(JsonArray rows) throws IOException {
+        if (rows.isEmpty()) throw new IOException("No se encontró el registro solicitado.");
+        return toDietDetails(rows.get(0).getAsJsonObject());
+    }
+
+    private static List<DietDetails> allDiets(JsonArray rows) {
+        List<DietDetails> result = new ArrayList<>();
+        for (JsonElement e : rows) result.add(toDietDetails(e.getAsJsonObject()));
+        return result;
+    }
+
+    /** Único lugar donde se conectan los alias del SELECT con el modelo. */
+    private static DietDetails toDietDetails(JsonObject r) {
+        return new DietDetails(
+                r.get("diet_id").getAsInt(),
+                r.get("user_id").getAsInt(),
+                r.get("patient_id").getAsInt(),
+                nullableDecimal(r, "calories"),
+                nullableDecimal(r, "fat"),
+                nullableDecimal(r, "cholesterol"),
+                nullableDecimal(r, "sodium"),
+                nullableDecimal(r, "carbohydrates"),
+                nullableDecimal(r, "protein"),
+                nullableDecimal(r, "calcium"),
+                nullableDecimal(r, "iron"),
+                nullableString(r, "note"),
+                nullableString(r, "creation_date"),
+                nullableString(r, "rest_day"),
+                nullableString(r, "target_gender"),
+                nullableInt(r, "meals_per_day"));
+    }
 
     public Diet getDietObjectById(int id) throws IOException, ParseException {
-        String json = db.read(c -> {
+        JsonArray flatRows = db.read(c -> {
             JsonArray rows = query(c, """
                 SELECT d.ID_DIETA AS diet_id, d.ID_USUARIO AS user_id, d.ID_PACIENTE AS patient_id,
                        d.CALORIAS AS calories, d.GRASAS AS fat, d.COLESTEROL AS cholesterol,
@@ -392,14 +432,12 @@ public class DietRepository {
                 ORDER BY c.DIA_SEMANA,c.HORA,c.ID_COMIDA,i.ID_INGREDIENTE
                 """, id);
             if (rows.isEmpty()) throw new IOException("La dieta no existe: " + id);
-            return items(rows);
+            return rows;
         });
-        return buildDietFromFlatJson(json);
+        return buildDietFromRows(flatRows);
     }
 
-    public Diet buildDietFromFlatJson(String json) throws ParseException {
-        JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-        JsonArray rows = root.getAsJsonArray("items");
+    public Diet buildDietFromRows(JsonArray rows) throws ParseException {
         Diet diet = new Diet();
         Map<Integer, Meal> mealsMap = new LinkedHashMap<>();
         LocalDate weekStart = LocalDate.now().with(java.time.DayOfWeek.MONDAY);
