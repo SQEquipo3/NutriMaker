@@ -77,7 +77,13 @@ public class CreateDietController implements Initializable {
             return false;
         }
 
-        cantCalories = Integer.parseInt(calTextField.getText());
+        try {
+            cantCalories = Integer.parseInt(calTextField.getText());
+        } catch (NumberFormatException ex) {
+            // Solo hay dígitos, pero el número no cabe en un int: está fuera del rango.
+            dialog("Rango de calorías permitido 0 - 6000");
+            return false;
+        }
         if (!(0 < cantCalories && cantCalories <= 6000)) {
             dialog("Rango de calorías permitido 0 - 6000");
             return false;
