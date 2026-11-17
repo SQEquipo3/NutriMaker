@@ -231,10 +231,22 @@ public class EditDietController implements Initializable {
             initialRestDay = DAYS[index];
             saved = true;
             ((Stage) saveButton.getScene().getWindow()).close();
+            notifyUpdated();
         } catch (NumberFormatException ex) {
             showError("Las calorías deben ser un número válido.");
         } catch (IllegalArgumentException | IOException ex) {
             showError(ex.getMessage());
+        }
+    }
+    
+    /** SRS 1.11.3.4: avisa al usuario que la dieta se actualizó. */
+    private void notifyUpdated() {
+        try {
+            DialogHelper.showMessage("La dieta se actualizó correctamente.");
+        } catch (IOException ex) {
+            // Los cambios ya se guardaron; si el aviso falla solo se registra.
+            java.util.logging.Logger.getLogger(EditDietController.class.getName())
+                    .log(java.util.logging.Level.WARNING, "No se pudo mostrar el aviso de éxito", ex);
         }
     }
 
